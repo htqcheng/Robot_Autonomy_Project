@@ -35,6 +35,16 @@ class RandomAgent:
         return delta_pos + delta_quat + gripper_pos
 
 
+class moveAgent:
+
+    def act(self, obs, stuff):
+        stepsize = 0.005
+        delta_pos = [(stuff[0]-obs.gripper_pose[0])*stepsize,(stuff[1]-obs.gripper_pose[1])*stepsize,(stuff[2]-obs.gripper_pose[2])*stepsize]
+        delta_quat = [0, 0, 0, 1] # xyzw
+        gripper_pos = [0]
+        return delta_pos + delta_quat + gripper_pos
+
+
 class NoisyObjectPoseSensor:
 
     def __init__(self, env):
@@ -49,6 +59,7 @@ class NoisyObjectPoseSensor:
 
         for obj in objs:
             name = obj.get_name()
+            # print(name)
             pose = obj.get_pose()
 
             pos, quat_wxyz = sample_normal_pose(self._pos_scale, self._rot_scale)
@@ -67,7 +78,7 @@ if __name__ == "__main__":
     action_mode = ActionMode(ArmActionMode.DELTA_EE_POSE) # See rlbench/action_modes.py for other action modes
     env = Environment(action_mode, '', ObservationConfig(), False)
     task = env.get_task(EmptyContainer) # available tasks: EmptyContainer, PlayJenga, PutGroceriesInCupboard, SetTheTable
-    agent = RandomAgent()
+    agent = moveAgent()
     obj_pose_sensor = NoisyObjectPoseSensor(env)
    
     descriptions, obs = task.reset()
@@ -75,6 +86,7 @@ if __name__ == "__main__":
     while True:
         # Getting noisy object poses
         obj_poses = obj_pose_sensor.get_poses()
+        stuff = obj_poses['small_container0'][:3]
 
         # Getting various fields from obs
         current_joints = obs.joint_positions
@@ -84,7 +96,7 @@ if __name__ == "__main__":
         mask = obs.wrist_mask
 
         # Perform action and step simulation
-        action = agent.act(obs)
+        action = agent.act(obs,stuff)
         obs, reward, terminate = task.step(action)
 
         # if terminate:
