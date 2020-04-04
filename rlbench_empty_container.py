@@ -35,14 +35,19 @@ class RandomAgent:
         return delta_pos + delta_quat + gripper_pos
 
 
-class moveAgent:
+class MoveAgent:
 
-    def act(self, obs, stuff):
-        stepsize = 0.005
-        delta_pos = [(stuff[0]-obs.gripper_pose[0])*stepsize,(stuff[1]-obs.gripper_pose[1])*stepsize,(stuff[2]-obs.gripper_pose[2])*stepsize]
-        delta_quat = [0, 0, 0, 1] # xyzw
-        gripper_pos = [0]
-        return delta_pos + delta_quat + gripper_pos
+    def act(self, obs, target_pos):
+        stepsize = 0.015
+        movementVector = np.asarray([(target_pos[0]-obs.gripper_pose[0]),
+                                     (target_pos[1]-obs.gripper_pose[1]),
+                                     (target_pos[2]-obs.gripper_pose[2])])
+        unitMovementVector = movementVector / np.linalg.norm(movementVector)
+        robotStep = unitMovementVector * stepsize
+        delta_quat = np.asarray([0, 0, 0, 1]) # xyzw
+        gripper_pos = np.asarray([0])
+
+        return np.concatenate((robotStep, delta_quat, gripper_pos))
 
 
 class NoisyObjectPoseSensor:
@@ -86,7 +91,7 @@ if __name__ == "__main__":
     while True:
         # Getting noisy object poses
         obj_poses = obj_pose_sensor.get_poses()
-        stuff = obj_poses['small_container0'][:3]
+        small_container_pos = obj_poses['small_container0'][:3]
 
         # Getting various fields from obs
         current_joints = obs.joint_positions
@@ -96,7 +101,7 @@ if __name__ == "__main__":
         mask = obs.wrist_mask
 
         # Perform action and step simulation
-        action = agent.act(obs,stuff)
+        action = agent.act(obs, small_container_pos)
         obs, reward, terminate = task.step(action)
 
         # if terminate:
