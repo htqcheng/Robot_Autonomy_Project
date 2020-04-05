@@ -3,6 +3,8 @@ import scipy as sp
 from quaternion import from_rotation_matrix, quaternion
 import cv2
 import imutils
+from imutils import perspective
+from imutils import contours
 
 from rlbench.environment import Environment
 from rlbench.action_modes import ArmActionMode, ActionMode
@@ -123,15 +125,33 @@ if __name__ == "__main__":
         edges = cv2.Canny(gray, 50, 100)
         edges = cv2.dilate(edges, None, iterations=1)
         edges = cv2.erode(edges, None, iterations=1)
-        cv2.imwrite('test.jpg', edges)
 
         # find contours in the edge map
-        cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
+        cnts = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL,
         	cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
         # sort the contours from left-to-right and initialize the
         # 'pixels per metric' calibration variable
         (cnts, _) = contours.sort_contours(cnts)
+
+        # loop over the contours individually
+        bgr_modified = bgr.copy()
+        for c in cnts:
+            # if the contour is not sufficiently large, ignore it
+            if cv2.contourArea(c) < 100:
+                continue
+            # compute the rotated bounding box of the contour
+            box = cv2.minAreaRect(c)
+            box = cv2.boxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box)
+            box = np.array(box, dtype="int")
+            # order the points in the contour such that they appear
+            # in top-left, top-right, bottom-right, and bottom-left
+            # order, then draw the outline of the rotated bounding
+            # box
+            box = perspective.order_points(box)
+            cv2.drawContours(bgr_modified, [box.astype("int")], -1, (0, 255, 0), 2)
+
+        cv2.imwrite('test.jpg', bgr_modified)
 
         # Perform action and step simulation
         action = agent.act(obs, small_container_pos)
