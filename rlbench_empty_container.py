@@ -2,6 +2,7 @@ import numpy as np
 import scipy as sp
 from quaternion import from_rotation_matrix, quaternion
 import cv2
+import imutils
 
 from rlbench.environment import Environment
 from rlbench.action_modes import ArmActionMode, ActionMode
@@ -123,6 +124,14 @@ if __name__ == "__main__":
         edges = cv2.dilate(edges, None, iterations=1)
         edges = cv2.erode(edges, None, iterations=1)
         cv2.imwrite('test.jpg', edges)
+
+        # find contours in the edge map
+        cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
+        	cv2.CHAIN_APPROX_SIMPLE)
+        cnts = imutils.grab_contours(cnts)
+        # sort the contours from left-to-right and initialize the
+        # 'pixels per metric' calibration variable
+        (cnts, _) = contours.sort_contours(cnts)
 
         # Perform action and step simulation
         action = agent.act(obs, small_container_pos)
