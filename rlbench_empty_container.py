@@ -102,17 +102,17 @@ if __name__ == "__main__":
         mask = obs.wrist_mask
 
         # convert rgb to hsv
-        hsv_image = cv2.cvtColor(rgb, cv2.COLOR_BGR2HSV)
+        bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
 
         # establish bounds for thresholding for red object
         lower_bound = np.array([0, 0, 100])
-        upper_bound = np.array([80, 80, 255])
+        upper_bound = np.array([10, 10, 255])
 
         # create bounded mask
-        mask_red = cv2.inRange(hsv_image, lower_bound, upper_bound)
+        mask_red = cv2.inRange(bgr, lower_bound, upper_bound)
 
         # bitwise mask
-        res = cv2.bitwise_and(rgb.astype(np.uint8), rgb.astype(np.uint8), mask_red)
+        res = cv2.bitwise_and(bgr.astype(np.uint8), bgr.astype(np.uint8), mask=mask_red)
 
         # convert image to gray
         gray = cv2.cvtColor(rgb.astype(np.uint8), cv2.COLOR_BGR2GRAY)
