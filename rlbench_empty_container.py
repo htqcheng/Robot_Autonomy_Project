@@ -1,6 +1,6 @@
 import numpy as np
 import scipy as sp
-from quaternion import from_rotation_matrix, quaternion
+from quaternion import from_rotation_matrix, quaternion, as_euler_angles
 
 from rlbench.environment import Environment
 from rlbench.action_modes import ArmActionMode, ActionMode
@@ -38,14 +38,19 @@ class RandomAgent:
 class MoveAgent:
 
     def act(self, obs, target_pos):
-        stepsize = 0.015
+        stepsize = 0.005
         movementVector = np.asarray([(target_pos[0]-obs.gripper_pose[0]),
                                      (target_pos[1]-obs.gripper_pose[1]),
                                      (target_pos[2]-obs.gripper_pose[2])])
+        
+        # if np.linalg.norm(movementVector)<0.02:
+        #     return [0, 0, 0, 0, 0, 0, 0, 1, 0]
+
         unitMovementVector = movementVector / np.linalg.norm(movementVector)
         robotStep = unitMovementVector * stepsize
         delta_quat = np.asarray([0, 0, 0, 1]) # xyzw
-        gripper_pos = np.asarray([0])
+        # delta_quat = quat
+        gripper_pos = np.asarray([1])
 
         return np.concatenate((robotStep, delta_quat, gripper_pos))
 
@@ -83,7 +88,7 @@ if __name__ == "__main__":
     action_mode = ActionMode(ArmActionMode.DELTA_EE_POSE) # See rlbench/action_modes.py for other action modes
     env = Environment(action_mode, '', ObservationConfig(), False)
     task = env.get_task(EmptyContainer) # available tasks: EmptyContainer, PlayJenga, PutGroceriesInCupboard, SetTheTable
-    agent = moveAgent()
+    agent = MoveAgent()
     obj_pose_sensor = NoisyObjectPoseSensor(env)
    
     descriptions, obs = task.reset()
@@ -92,6 +97,15 @@ if __name__ == "__main__":
         # Getting noisy object poses
         obj_poses = obj_pose_sensor.get_poses()
         small_container_pos = obj_poses['small_container0'][:3]
+        small_container_quat = quaternion(obj_poses['small_container0'][3], obj_poses['small_container0'][4], obj_poses['small_container0'][5],obj_poses['small_container0'][6])
+        small_container_euler = as_euler_angles(small_container_quat)
+        print(small_container_euler)
+        z = small_container_euler[0]
+        # small_container_pos[2] += 0.1
+
+        # The size of the small container is .25x by .14y by .07z (m)
+        small_container_pos[0] += 0.070*np.sin(z)
+        small_container_pos[1] += 0.070*np.cos(z)
 
         # Getting various fields from obs
         current_joints = obs.joint_positions
