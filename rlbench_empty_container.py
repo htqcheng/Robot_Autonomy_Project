@@ -1,6 +1,7 @@
 import numpy as np
 import scipy as sp
 from quaternion import from_rotation_matrix, quaternion
+import cv2
 
 from rlbench.environment import Environment
 from rlbench.action_modes import ArmActionMode, ActionMode
@@ -83,7 +84,7 @@ if __name__ == "__main__":
     action_mode = ActionMode(ArmActionMode.DELTA_EE_POSE) # See rlbench/action_modes.py for other action modes
     env = Environment(action_mode, '', ObservationConfig(), False)
     task = env.get_task(EmptyContainer) # available tasks: EmptyContainer, PlayJenga, PutGroceriesInCupboard, SetTheTable
-    agent = moveAgent()
+    agent = MoveAgent()
     obj_pose_sensor = NoisyObjectPoseSensor(env)
    
     descriptions, obs = task.reset()
@@ -96,9 +97,32 @@ if __name__ == "__main__":
         # Getting various fields from obs
         current_joints = obs.joint_positions
         gripper_pose = obs.gripper_pose
-        rgb = obs.wrist_rgb
+        rgb = obs.wrist_rgb * 255
         depth = obs.wrist_depth
         mask = obs.wrist_mask
+
+        # convert rgb to hsv
+        hsv_image = cv2.cvtColor(rgb, cv2.COLOR_BGR2HSV)
+
+        # establish bounds for thresholding for red object
+        lower_bound = np.array([0, 0, 100])
+        upper_bound = np.array([80, 80, 255])
+
+        # create bounded mask
+        mask_red = cv2.inRange(hsv_image, lower_bound, upper_bound)
+
+        # bitwise mask
+        res = cv2.bitwise_and(rgb.astype(np.uint8), rgb.astype(np.uint8), mask_red)
+
+        # convert image to gray
+        gray = cv2.cvtColor(rgb.astype(np.uint8), cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (7, 7), 0)
+        # # perform edge detection, then perform a dilation + erosion to
+        # # close gaps in between object edges
+        edges = cv2.Canny(gray, 50, 100)
+        # edges = cv2.dilate(edges, None, iterations=1)
+        # edges = cv2.erode(edges, None, iterations=1)
+        cv2.imwrite('test.jpg', res)
 
         # Perform action and step simulation
         action = agent.act(obs, small_container_pos)
