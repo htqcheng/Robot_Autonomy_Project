@@ -112,17 +112,17 @@ if __name__ == "__main__":
         mask_red = cv2.inRange(bgr, lower_bound, upper_bound)
 
         # bitwise mask
-        res = cv2.bitwise_and(bgr.astype(np.uint8), bgr.astype(np.uint8), mask=mask_red)
+        redBoxOnlyFrame = cv2.bitwise_and(bgr.astype(np.uint8), bgr.astype(np.uint8), mask=mask_red)
 
         # convert image to gray
-        gray = cv2.cvtColor(rgb.astype(np.uint8), cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(redBoxOnlyFrame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (7, 7), 0)
-        # # perform edge detection, then perform a dilation + erosion to
-        # # close gaps in between object edges
+        # perform edge detection, then perform a dilation + erosion to
+        # close gaps in between object edges
         edges = cv2.Canny(gray, 50, 100)
-        # edges = cv2.dilate(edges, None, iterations=1)
-        # edges = cv2.erode(edges, None, iterations=1)
-        cv2.imwrite('test.jpg', res)
+        edges = cv2.dilate(edges, None, iterations=1)
+        edges = cv2.erode(edges, None, iterations=1)
+        cv2.imwrite('test.jpg', edges)
 
         # Perform action and step simulation
         action = agent.act(obs, small_container_pos)
