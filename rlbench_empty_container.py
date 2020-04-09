@@ -34,17 +34,18 @@ class RandomAgent:
         gripper_pos = [np.random.rand() > 0.5]
         return delta_pos + delta_quat + gripper_pos
 
-
 class MoveAgent:
 
     def act(self, obs, target_pos):
+        global state
         stepsize = 0.005
         movementVector = np.asarray([(target_pos[0]-obs.gripper_pose[0]),
                                      (target_pos[1]-obs.gripper_pose[1]),
                                      (target_pos[2]-obs.gripper_pose[2])])
         
-        # if np.linalg.norm(movementVector)<0.02:
-        #     return [0, 0, 0, 0, 0, 0, 0, 1, 0]
+        if np.linalg.norm(movementVector)<0.02:
+            state = 1
+            return [0, 0, 0, 0, 0, 0, 1, 0]
 
         unitMovementVector = movementVector / np.linalg.norm(movementVector)
         robotStep = unitMovementVector * stepsize
@@ -90,16 +91,17 @@ if __name__ == "__main__":
     task = env.get_task(EmptyContainer) # available tasks: EmptyContainer, PlayJenga, PutGroceriesInCupboard, SetTheTable
     agent = MoveAgent()
     obj_pose_sensor = NoisyObjectPoseSensor(env)
+    state = 0
    
     descriptions, obs = task.reset()
-    print(descriptions)
+    # print(descriptions)
     while True:
         # Getting noisy object poses
         obj_poses = obj_pose_sensor.get_poses()
         small_container_pos = obj_poses['small_container0'][:3]
         small_container_quat = quaternion(obj_poses['small_container0'][3], obj_poses['small_container0'][4], obj_poses['small_container0'][5],obj_poses['small_container0'][6])
         small_container_euler = as_euler_angles(small_container_quat)
-        print(small_container_euler)
+        # print(small_container_euler)
         z = small_container_euler[0]
         # small_container_pos[2] += 0.1
 
@@ -115,7 +117,10 @@ if __name__ == "__main__":
         mask = obs.wrist_mask
 
         # Perform action and step simulation
-        action = agent.act(obs, small_container_pos)
+        if state == 1:
+            print(state)
+        if state == 0:
+            action = agent.act(obs, small_container_pos)
         obs, reward, terminate = task.step(action)
 
         # if terminate:
