@@ -10,6 +10,7 @@ from rlbench.environment import Environment
 from rlbench.action_modes import ArmActionMode, ActionMode
 from rlbench.observation_config import ObservationConfig
 from rlbench.tasks import *
+import helper
 
 def skew(x):
     return np.array([[0, -x[2], x[1]],
@@ -100,58 +101,17 @@ if __name__ == "__main__":
         # Getting various fields from obs
         current_joints = obs.joint_positions
         gripper_pose = obs.gripper_pose
-        rgb = obs.wrist_rgb * 255
-        depth = obs.wrist_depth
-        mask = obs.wrist_mask
-
-        # convert rgb to hsv
-        bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+        rgb_img = obs.wrist_rgb * 255
+        depth_img = obs.wrist_depth
+        mask_img = obs.wrist_mask
 
         # establish bounds for thresholding for red object
+        # these channels are reversed from RGB to BGR
+        # because the image channels are flipped by opencv
         lower_bound = np.array([0, 0, 100])
         upper_bound = np.array([10, 10, 255])
 
-        # create bounded mask
-        mask_red = cv2.inRange(bgr, lower_bound, upper_bound)
-
-        # bitwise mask
-        redBoxOnlyFrame = cv2.bitwise_and(bgr.astype(np.uint8), bgr.astype(np.uint8), mask=mask_red)
-
-        # convert image to gray
-        gray = cv2.cvtColor(redBoxOnlyFrame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (7, 7), 0)
-        # perform edge detection, then perform a dilation + erosion to
-        # close gaps in between object edges
-        edges = cv2.Canny(gray, 50, 100)
-        edges = cv2.dilate(edges, None, iterations=1)
-        edges = cv2.erode(edges, None, iterations=1)
-
-        # find contours in the edge map
-        cnts = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL,
-        	cv2.CHAIN_APPROX_SIMPLE)
-        cnts = imutils.grab_contours(cnts)
-        # sort the contours from left-to-right and initialize the
-        # 'pixels per metric' calibration variable
-        (cnts, _) = contours.sort_contours(cnts)
-
-        # loop over the contours individually
-        bgr_modified = bgr.copy()
-        for c in cnts:
-            # if the contour is not sufficiently large, ignore it
-            if cv2.contourArea(c) < 100:
-                continue
-            # compute the rotated bounding box of the contour
-            box = cv2.minAreaRect(c)
-            box = cv2.boxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box)
-            box = np.array(box, dtype="int")
-            # order the points in the contour such that they appear
-            # in top-left, top-right, bottom-right, and bottom-left
-            # order, then draw the outline of the rotated bounding
-            # box
-            box = perspective.order_points(box)
-            cv2.drawContours(bgr_modified, [box.astype("int")], -1, (0, 255, 0), 2)
-
-        cv2.imwrite('test.jpg', bgr_modified)
+        helper.generate_bounding_box(rgb_img, lower_bound, upper_bound)
 
         # Perform action and step simulation
         action = agent.act(obs, small_container_pos)
