@@ -49,8 +49,8 @@ class MoveAgent:
 
         unitMovementVector = movementVector / np.linalg.norm(movementVector)
         robotStep = unitMovementVector * stepsize
-        delta_quat = np.asarray([0, 0, 0, 1]) # xyzw
-        # delta_quat = quat
+        # delta_quat = np.asarray([0, 0, 0, 1]) # xyzw
+        delta_quat = target_pos[3:7]
         gripper_pos = np.asarray([1])
 
         return np.concatenate((robotStep, delta_quat, gripper_pos))
@@ -110,7 +110,7 @@ class NoisyObjectPoseSensor:
 
 
 if __name__ == "__main__":
-    action_mode = ActionMode(ArmActionMode.DELTA_EE_POSE) # See rlbench/action_modes.py for other action modes
+    action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN) # See rlbench/action_modes.py for other action modes
     env = Environment(action_mode, '', ObservationConfig(), False)
     task = env.get_task(EmptyContainer) # available tasks: EmptyContainer, PlayJenga, PutGroceriesInCupboard, SetTheTable
     agent = MoveAgent()
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     while True:
         # Getting noisy object poses
         obj_poses = obj_pose_sensor.get_poses()
-        small_container_pos = obj_poses['small_container0'][:3]
+        small_container_pos = obj_poses['small_container0'][:7]
         small_container_pos[2] -= 0.01
         small_container_quat = quaternion(obj_poses['small_container0'][3], obj_poses['small_container0'][4], obj_poses['small_container0'][5],obj_poses['small_container0'][6])
         small_container_euler = as_euler_angles(small_container_quat)
@@ -148,13 +148,19 @@ if __name__ == "__main__":
         mask = obs.wrist_mask
 
         # Perform action and step simulation
-
-        if state == 2:
-            action = agent.moveup(obs, 1)
-        if state == 1:
-            action = agent.moveleft(obs, np.sin(z), np.cos(z))
+        # if state == 2:
+        #     action = agent.moveup(obs, 1)
+        # if state == 1:
+        #     action = agent.moveleft(obs, np.sin(z), np.cos(z))
+        # if state == 0:
+        #     action = agent.move2box(obs, small_container_pos)
+        
         if state == 0:
-            action = agent.move2box(obs, small_container_pos)
+            action = np.concatenate((small_container_pos, np.array([1])))
+            state = 1
+        elif state == 1:
+            action = obs.gripper_pose
+            action[-1] = 0
         obs, reward, terminate = task.step(action)
 
         # if terminate:
