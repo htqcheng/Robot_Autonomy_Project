@@ -123,7 +123,8 @@ if __name__ == "__main__":
     while True:
         # Getting noisy object poses
         obj_poses = obj_pose_sensor.get_poses()
-        small_container_pos = obj_poses['small_container0'][:7]
+        small_container_pos = obj_poses['small_container0'][:3]
+        small_container_quat2 = obj_poses['small_container0'][3:7]
         small_container_pos[2] -= 0.01
         small_container_quat = quaternion(obj_poses['small_container0'][3], obj_poses['small_container0'][4], obj_poses['small_container0'][5],obj_poses['small_container0'][6])
         small_container_euler = as_euler_angles(small_container_quat)
@@ -156,7 +157,7 @@ if __name__ == "__main__":
         #     action = agent.move2box(obs, small_container_pos)
         
         if state == 0:
-            action = np.concatenate((small_container_pos, np.array([1])))
+            action = np.concatenate((small_container_pos, gripper_pose[3:7], np.array([1])))
             state = 1
         elif state == 1:
             action = obs.gripper_pose
