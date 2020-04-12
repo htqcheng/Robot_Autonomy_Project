@@ -36,14 +36,14 @@ class RandomAgent:
 
 class MoveAgent:
 
-    def act(self, obs, target_pos):
+    def move2box(self, obs, target_pos):
         global state
         stepsize = 0.005
         movementVector = np.asarray([(target_pos[0]-obs.gripper_pose[0]),
                                      (target_pos[1]-obs.gripper_pose[1]),
                                      (target_pos[2]-obs.gripper_pose[2])])
         
-        if np.linalg.norm(movementVector)<0.02:
+        if np.linalg.norm(movementVector)<0.01:
             state = 1
             return [0, 0, 0, 0, 0, 0, 1, 0]
 
@@ -52,6 +52,30 @@ class MoveAgent:
         delta_quat = np.asarray([0, 0, 0, 1]) # xyzw
         # delta_quat = quat
         gripper_pos = np.asarray([1])
+
+        return np.concatenate((robotStep, delta_quat, gripper_pos))
+
+    def moveleft(self, obs, x, y):
+        global state, count
+        count += 1
+        print(count)
+        if count >= 10:
+            state = 2
+        stepsize = 0.005
+        robotStep = np.asarray([stepsize*x, stepsize*y, 0])
+        delta_quat = np.asarray([0, 0, 0, 1]) # xyzw
+        # delta_quat = quat
+        gripper_pos = np.asarray([0])
+
+        return np.concatenate((robotStep, delta_quat, gripper_pos))
+    
+    def moveup(self, obs, length):
+        global state
+        stepsize = 0.005
+        robotStep = np.asarray([0, 0, stepsize])
+        delta_quat = np.asarray([0, 0, 0, 1]) # xyzw
+        # delta_quat = quat
+        gripper_pos = np.asarray([0])
 
         return np.concatenate((robotStep, delta_quat, gripper_pos))
 
@@ -92,18 +116,25 @@ if __name__ == "__main__":
     agent = MoveAgent()
     obj_pose_sensor = NoisyObjectPoseSensor(env)
     state = 0
-   
+    count = 0
+
     descriptions, obs = task.reset()
     # print(descriptions)
     while True:
         # Getting noisy object poses
         obj_poses = obj_pose_sensor.get_poses()
         small_container_pos = obj_poses['small_container0'][:3]
+        small_container_pos[2] -= 0.01
         small_container_quat = quaternion(obj_poses['small_container0'][3], obj_poses['small_container0'][4], obj_poses['small_container0'][5],obj_poses['small_container0'][6])
         small_container_euler = as_euler_angles(small_container_quat)
         # print(small_container_euler)
         z = small_container_euler[0]
         # small_container_pos[2] += 0.1
+
+        # Get shapes
+        shape0_pos = obj_poses['Shape'][:3]
+        shape1_pos = obj_poses['Shape1'][:3]
+        shape3_pos = obj_poses['Shape3'][:3]
 
         # The size of the small container is .25x by .14y by .07z (m)
         small_container_pos[0] += 0.070*np.sin(z)
@@ -117,10 +148,13 @@ if __name__ == "__main__":
         mask = obs.wrist_mask
 
         # Perform action and step simulation
+
+        if state == 2:
+            action = agent.moveup(obs, 1)
         if state == 1:
-            print(state)
+            action = agent.moveleft(obs, np.sin(z), np.cos(z))
         if state == 0:
-            action = agent.act(obs, small_container_pos)
+            action = agent.move2box(obs, small_container_pos)
         obs, reward, terminate = task.step(action)
 
         # if terminate:
