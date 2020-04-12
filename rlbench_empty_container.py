@@ -12,6 +12,7 @@ from rlbench.observation_config import ObservationConfig
 from rlbench.tasks import *
 import helper
 
+
 def skew(x):
     return np.array([[0, -x[2], x[1]],
                     [x[2], 0, -x[0]],
@@ -54,6 +55,47 @@ class MoveAgent:
 
         return np.concatenate((robotStep, delta_quat, gripper_pos))
 
+    def get_objects(self, obs, object_pos, box_pos):
+        global state
+        stepsize = 0.01
+        if state == 0:
+            movementVector = np.asarray([(object_pos[0] - obs.gripper_pose[0]),
+                                         (object_pos[1] - obs.gripper_pose[1]),
+                                         (object_pos[2] - obs.gripper_pose[2])])
+
+            if np.linalg.norm(movementVector) < 0.005:
+                state = 1
+                return [0, 0, 0, 0, 0, 0, 1, 0]
+
+            unitMovementVector = movementVector / np.linalg.norm(movementVector)
+            robotStep = unitMovementVector * stepsize
+            delta_quat = np.asarray([0, 0, 0, 1])  # xyzw
+            gripper_pos = np.asarray([1])
+
+            return np.concatenate((robotStep, delta_quat, gripper_pos))
+
+        elif state == 1:
+            if obs.gripper_pose[2] > 1.25:
+                state = 2
+            return [0, 0, stepsize, 0, 0, 0, 1, 0]
+
+        elif state == 2:
+            movementVector = np.asarray([(box_pos[0] - obs.gripper_pose[0]),
+                                         (box_pos[1] - obs.gripper_pose[1]),
+                                         (box_pos[2] - obs.gripper_pose[2])])
+
+            unitMovementVector = movementVector / np.linalg.norm(movementVector)
+            robotStep = unitMovementVector * stepsize
+            delta_quat = np.asarray([0, 0, 0, 1])  # xyzw
+            gripper_pos = np.asarray([0])
+
+            if np.linalg.norm(movementVector) < 0.02:
+                state = 3
+                return [0, 0, 0, 0, 0, 0, 1, 1]
+
+            return np.concatenate((robotStep, delta_quat, gripper_pos))
+
+
 
 class NoisyObjectPoseSensor:
 
@@ -69,7 +111,7 @@ class NoisyObjectPoseSensor:
 
         for obj in objs:
             name = obj.get_name()
-            # print(name)
+            #print(name)
             pose = obj.get_pose()
 
             pos, quat_wxyz = sample_normal_pose(self._pos_scale, self._rot_scale)
@@ -93,6 +135,8 @@ if __name__ == "__main__":
    
     descriptions, obs = task.reset()
     print(descriptions)
+    global state
+    state = 0
     while True:
         # Getting noisy object poses
         obj_poses = obj_pose_sensor.get_poses()
@@ -111,10 +155,16 @@ if __name__ == "__main__":
         lower_bound = np.array([0, 0, 100])
         upper_bound = np.array([10, 10, 255])
 
-        helper.generate_bounding_box(rgb_img, lower_bound, upper_bound)
+        # helper.generate_bounding_box(rgb_img, lower_bound, upper_bound)
 
         # Perform action and step simulation
-        action = agent.act(obs, small_container_pos)
+        # action = agent.act(obs, small_container_pos)
+        if state == 0:
+            shape0_pos = obj_poses['Shape'][:3]
+        else:
+            shape0_pos = [0, 0, 0]
+
+        action = agent.get_objects(obs, shape0_pos, small_container_pos)
         obs, reward, terminate = task.step(action)
 
         # if terminate:

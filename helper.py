@@ -72,4 +72,3 @@ def generate_bounding_box(rgb_img, lower_bound, upper_bound):
     cv2.imwrite('test.jpg', bgr_modified_img)
 
     return bgr_modified_img
-
