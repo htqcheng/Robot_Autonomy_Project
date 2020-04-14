@@ -124,6 +124,7 @@ if __name__ == "__main__":
         # Getting noisy object poses
         obj_poses = obj_pose_sensor.get_poses()
         small_container_pos = obj_poses['small_container0'][:3]
+        large_container_pos = obj_poses['large_container'][:3]
         small_container_quat2 = obj_poses['small_container0'][3:7]
         small_container_pos[2] -= 0.01
         small_container_quat = quaternion(obj_poses['small_container0'][3], obj_poses['small_container0'][4], obj_poses['small_container0'][5],obj_poses['small_container0'][6])
@@ -175,7 +176,7 @@ if __name__ == "__main__":
             action = np.concatenate((pose, np.array([0])))
             state = 4
         elif state == 4:
-            action = np.concatenate((obs.gripper_pose, np.array([0])))
+            action = np.concatenate((large_container_pos, obs.gripper_pose[3:7], np.array([0])))
         obs, reward, terminate = task.step(action)
 
         # if terminate:
