@@ -58,7 +58,7 @@ class MoveAgent:
     def get_objects(self, obs, object_pos, box_pos):
         global state
         global shape
-        stepsize = 0.01
+        stepsize = 0.02
         if state == 0:
             movementVector = np.asarray([(object_pos[0] - obs.gripper_pose[0]),
                                          (object_pos[1] - obs.gripper_pose[1]),
@@ -81,10 +81,10 @@ class MoveAgent:
             return [0, 0, stepsize, 0, 0, 0, 1, 0]
 
         elif state == 2:
-            if np.linalg.norm(np.asarray([(object_pos[0] - obs.gripper_pose[0]),
-                                          (object_pos[1] - obs.gripper_pose[1]),
-                                          (object_pos[2] - obs.gripper_pose[2])])) > .1:
-                state = 0
+            # if np.linalg.norm(np.asarray([(object_pos[0] - obs.gripper_pose[0]),
+            #                               (object_pos[1] - obs.gripper_pose[1]),
+            #                               (object_pos[2] - obs.gripper_pose[2])])) > .1:
+            #     state = 0
 
             if box_pos[0] - obs.gripper_pose[0] > .003:
                 movementVector = np.asarray([(box_pos[0] - obs.gripper_pose[0]),
@@ -174,7 +174,7 @@ if __name__ == "__main__":
         lower_bound = np.array([0, 0, 100])
         upper_bound = np.array([10, 10, 255])
 
-        # helper.generate_bounding_box(rgb_img, lower_bound, upper_bound)
+        helper.generate_bounding_box(rgb_img, lower_bound, upper_bound)
 
         # Perform action and step simulation
         # action = agent.act(obs, small_container_pos)

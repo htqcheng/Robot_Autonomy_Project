@@ -50,25 +50,29 @@ def generate_bounding_box(rgb_img, lower_bound, upper_bound):
     cnts = imutils.grab_contours(cnts)
     # sort the contours from left-to-right and initialize the
     # 'pixels per metric' calibration variable
-    (cnts, _) = contours.sort_contours(cnts)
+    try:
+        (cnts, _) = contours.sort_contours(cnts)
 
-    # loop over the contours individually
-    bgr_modified_img = bgr.copy()
-    for c in cnts:
-        # if the contour is not sufficiently large, ignore it
-        if cv2.contourArea(c) < 100:
-            continue
-        # compute the rotated bounding box of the contour
-        box = cv2.minAreaRect(c)
-        box = cv2.boxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box)
-        box = np.array(box, dtype="int")
-        # order the points in the contour such that they appear
-        # in top-left, top-right, bottom-right, and bottom-left
-        # order, then draw the outline of the rotated bounding
-        # box
-        box = perspective.order_points(box)
-        cv2.drawContours(bgr_modified_img, [box.astype("int")], -1, (0, 255, 0), 2)
+        # loop over the contours individually
+        bgr_modified_img = bgr.copy()
+        for c in cnts:
+            # if the contour is not sufficiently large, ignore it
+            if cv2.contourArea(c) < 100:
+                continue
+            # compute the rotated bounding box of the contour
+            box = cv2.minAreaRect(c)
+            box = cv2.boxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box)
+            box = np.array(box, dtype="int")
+            # order the points in the contour such that they appear
+            # in top-left, top-right, bottom-right, and bottom-left
+            # order, then draw the outline of the rotated bounding
+            # box
+            box = perspective.order_points(box)
+            cv2.drawContours(bgr_modified_img, [box.astype("int")], -1, (0, 255, 0), 2)
 
-    cv2.imwrite('test.jpg', bgr_modified_img)
+        cv2.imwrite('test.jpg', bgr_modified_img)
 
-    return bgr_modified_img
+        return bgr_modified_img
+
+    except ValueError:
+        print('No image to return')
