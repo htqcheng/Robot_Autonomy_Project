@@ -160,8 +160,22 @@ if __name__ == "__main__":
             action = np.concatenate((small_container_pos, gripper_pose[3:7], np.array([1])))
             state = 1
         elif state == 1:
-            action = obs.gripper_pose
+            action = np.concatenate((obs.gripper_pose, np.array([0])))
             action[-1] = 0
+            state = 2
+        elif state == 2:
+            pose = obs.gripper_pose
+            pose[0] += np.sin(z)*0.05
+            pose[1] += np.cos(z)*0.05
+            action = np.concatenate((pose, np.array([0])))
+            state = 3
+        elif state == 3:
+            pose = obs.gripper_pose
+            pose[2] += 0.1
+            action = np.concatenate((pose, np.array([0])))
+            state = 4
+        elif state == 4:
+            action = np.concatenate((obs.gripper_pose, np.array([0])))
         obs, reward, terminate = task.step(action)
 
         # if terminate:
