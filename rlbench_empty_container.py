@@ -166,8 +166,8 @@ if __name__ == "__main__":
             state = 2
         elif state == 2:
             pose = obs.gripper_pose
-            pose[0] += np.sin(z)*0.05
-            pose[1] += np.cos(z)*0.05
+            pose[0] += np.sin(z)*0.02
+            pose[1] += np.cos(z)*0.02
             action = np.concatenate((pose, np.array([0])))
             state = 3
         elif state == 3:
