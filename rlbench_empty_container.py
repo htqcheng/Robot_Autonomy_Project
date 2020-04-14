@@ -107,6 +107,10 @@ class NoisyObjectPoseSensor:
             obj_poses[name] = pose
 
         return obj_poses
+    
+    def get_objs(self):
+        objs = self._env._scene._active_task.get_base().get_objects_in_tree(exclude_base=True, first_generation_only=False)
+        return objs
 
 
 if __name__ == "__main__":
@@ -118,21 +122,28 @@ if __name__ == "__main__":
     state = 0
     count = 0
 
+    gripper = task._robot.gripper
+    objs = obj_pose_sensor.get_objs()
+    for obj in objs:
+        if (obj.get_name()=='small_container0'):
+            small_container0_obj = obj
+
     descriptions, obs = task.reset()
     # print(descriptions)
-    while True:
-        # Getting noisy object poses
-        obj_poses = obj_pose_sensor.get_poses()
-        small_container_pos = obj_poses['small_container0'][:3]
-        large_container_pos = obj_poses['large_container'][:3]
-        small_container_quat2 = obj_poses['small_container0'][3:7]
-        small_container_pos[2] -= 0.01
-        small_container_quat = quaternion(obj_poses['small_container0'][3], obj_poses['small_container0'][4], obj_poses['small_container0'][5],obj_poses['small_container0'][6])
-        small_container_euler = as_euler_angles(small_container_quat)
-        # print(small_container_euler)
-        z = small_container_euler[0]
-        # small_container_pos[2] += 0.1
 
+    # Getting noisy object poses
+    obj_poses = obj_pose_sensor.get_poses()
+    small_container_pos = obj_poses['small_container0'][:3]
+    large_container_pos = obj_poses['large_container'][:3]
+    small_container_quat2 = obj_poses['small_container0'][3:7]
+    small_container_pos[2] -= 0.01
+    small_container_quat = quaternion(obj_poses['small_container0'][3], obj_poses['small_container0'][4], obj_poses['small_container0'][5],obj_poses['small_container0'][6])
+    small_container_euler = as_euler_angles(small_container_quat)
+    # print(small_container_euler)
+    z = small_container_euler[0]
+    # small_container_pos[2] += 0.1
+
+    while True:
         # Get shapes
         shape0_pos = obj_poses['Shape'][:3]
         shape1_pos = obj_poses['Shape1'][:3]
@@ -161,22 +172,23 @@ if __name__ == "__main__":
             action = np.concatenate((small_container_pos, gripper_pose[3:7], np.array([1])))
             state = 1
         elif state == 1:
-            action = np.concatenate((obs.gripper_pose, np.array([0])))
-            action[-1] = 0
+            action = np.concatenate((obs.gripper_pose, np.array([1])))
+            # action[-1] = 0
+            gripper.grasp(small_container0_obj)
             state = 2
         elif state == 2:
             pose = obs.gripper_pose
             pose[0] += np.sin(z)*0.02
             pose[1] += np.cos(z)*0.02
-            action = np.concatenate((pose, np.array([0])))
+            action = np.concatenate((pose, np.array([1])))
             state = 3
         elif state == 3:
             pose = obs.gripper_pose
             pose[2] += 0.1
-            action = np.concatenate((pose, np.array([0])))
+            action = np.concatenate((pose, np.array([1])))
             state = 4
         elif state == 4:
-            action = np.concatenate((large_container_pos, obs.gripper_pose[3:7], np.array([0])))
+            action = np.concatenate((large_container_pos, obs.gripper_pose[3:7], np.array([1])))
         obs, reward, terminate = task.step(action)
 
         # if terminate:
