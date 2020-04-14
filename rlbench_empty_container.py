@@ -1,6 +1,6 @@
 import numpy as np
 import scipy as sp
-from quaternion import from_rotation_matrix, quaternion, as_euler_angles
+from quaternion import from_rotation_matrix, quaternion, as_euler_angles, from_euler_angles, as_float_array
 
 from rlbench.environment import Environment
 from rlbench.action_modes import ArmActionMode, ActionMode
@@ -142,6 +142,15 @@ if __name__ == "__main__":
     # print(small_container_euler)
     z = small_container_euler[0]
     # small_container_pos[2] += 0.1
+    above_large_container = large_container_pos
+    above_large_container[2] += 0.3
+
+    flipped = quaternion(obs.gripper_pose[3],obs.gripper_pose[4],obs.gripper_pose[5],obs.gripper_pose[6])
+    flipped_euler = as_euler_angles(flipped)
+    print(flipped_euler)
+    flipped_euler[2] -= 2
+    flipped = from_euler_angles(flipped_euler)
+    flipped_array = as_float_array(flipped)
 
     while True:
         # Get shapes
@@ -152,6 +161,8 @@ if __name__ == "__main__":
         # The size of the small container is .25x by .14y by .07z (m)
         small_container_pos[0] += 0.070*np.sin(z)
         small_container_pos[1] += 0.070*np.cos(z)
+
+        
 
         # Getting various fields from obs
         current_joints = obs.joint_positions
@@ -168,27 +179,40 @@ if __name__ == "__main__":
         # if state == 0:
         #     action = agent.move2box(obs, small_container_pos)
         
+        # move to red box
+        # state = 5
         if state == 0:
             action = np.concatenate((small_container_pos, gripper_pose[3:7], np.array([1])))
             state = 1
+        # grasp box
         elif state == 1:
-            action = np.concatenate((obs.gripper_pose, np.array([1])))
+            action = np.concatenate((obs.gripper_pose, np.array([0])))
             # action[-1] = 0
             gripper.grasp(small_container0_obj)
             state = 2
+        # moving sideways
         elif state == 2:
             pose = obs.gripper_pose
             pose[0] += np.sin(z)*0.02
             pose[1] += np.cos(z)*0.02
-            action = np.concatenate((pose, np.array([1])))
+            action = np.concatenate((pose, np.array([0])))
             state = 3
+        # moving up
         elif state == 3:
             pose = obs.gripper_pose
             pose[2] += 0.1
-            action = np.concatenate((pose, np.array([1])))
+            action = np.concatenate((pose, np.array([0])))
             state = 4
+        # above big container
         elif state == 4:
-            action = np.concatenate((large_container_pos, obs.gripper_pose[3:7], np.array([1])))
+            action = np.concatenate((above_large_container, obs.gripper_pose[3:7], np.array([0])))
+            state = 5
+        #flip box
+        elif state ==5:
+            # print(flipped_array)
+            action = np.concatenate((above_large_container, flipped_array, np.array([0])))
+            state = 6
+            
         obs, reward, terminate = task.step(action)
 
         # if terminate:
