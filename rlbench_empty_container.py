@@ -145,12 +145,16 @@ if __name__ == "__main__":
     above_large_container = large_container_pos
     above_large_container[2] += 0.3
 
-    flipped = quaternion(obs.gripper_pose[3],obs.gripper_pose[4],obs.gripper_pose[5],obs.gripper_pose[6])
-    flipped_euler = as_euler_angles(flipped)
+    notflipped = quaternion(obs.gripper_pose[3],obs.gripper_pose[4],obs.gripper_pose[5],obs.gripper_pose[6])
+    notflipped_array = as_float_array(notflipped)
+    flipped_euler = as_euler_angles(notflipped)
     print(flipped_euler)
-    flipped_euler[2] -= 2
+    flipped_euler[2] += 2
     flipped = from_euler_angles(flipped_euler)
     flipped_array = as_float_array(flipped)
+
+    above_large_container[0] += 0.070*np.sin(z)
+    above_large_container[1] += 0.070*np.cos(z)
 
     while True:
         # Get shapes
@@ -161,6 +165,8 @@ if __name__ == "__main__":
         # The size of the small container is .25x by .14y by .07z (m)
         small_container_pos[0] += 0.070*np.sin(z)
         small_container_pos[1] += 0.070*np.cos(z)
+
+        
 
         
 
