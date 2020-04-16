@@ -134,6 +134,7 @@ if __name__ == "__main__":
     # Getting noisy object poses
     obj_poses = obj_pose_sensor.get_poses()
     small_container_pos = obj_poses['small_container0'][:3]
+    small_container_pos_original = obj_poses['small_container0'][:3]
     large_container_pos = obj_poses['large_container'][:3]
     small_container_quat2 = obj_poses['small_container0'][3:7]
     small_container_pos[2] -= 0.01
@@ -149,12 +150,20 @@ if __name__ == "__main__":
     notflipped_array = as_float_array(notflipped)
     flipped_euler = as_euler_angles(notflipped)
     print(flipped_euler)
-    flipped_euler[2] += 2
+
+    amount_2_flip = -2
+    if np.cos(z)<0:
+        amount_2_flip = -amount_2_flip
+    flipped_euler[2] += amount_2_flip
     flipped = from_euler_angles(flipped_euler)
     flipped_array = as_float_array(flipped)
 
     above_large_container[0] += 0.070*np.sin(z)
     above_large_container[1] += 0.070*np.cos(z)
+
+    small_container_pos_original = small_container_pos + 0*small_container_pos
+    small_container_pos_original[0] = small_container_pos[0]+0.070*np.sin(z)
+    small_container_pos_original[1] = small_container_pos[1]+0.070*np.cos(z)
 
     while True:
         # Get shapes
@@ -218,6 +227,27 @@ if __name__ == "__main__":
             # print(flipped_array)
             action = np.concatenate((above_large_container, flipped_array, np.array([0])))
             state = 6
+        elif state ==6:
+            # print(flipped_array)
+            action = np.concatenate((above_large_container, notflipped_array, np.array([0])))
+            state = 7
+        elif state ==7:
+            # print(flipped_array)
+            action = np.concatenate((small_container_pos_original+[0,0,0.1], notflipped_array, np.array([0])))
+            state = 8
+        elif state ==8:
+            # print(flipped_array)
+            action = np.concatenate((small_container_pos_original, notflipped_array, np.array([0])))
+            state = 9
+        elif state ==9:
+            # print(flipped_array)
+            action = np.concatenate((small_container_pos_original, notflipped_array, np.array([1])))
+            state = 10
+        elif state ==10:
+            # print(flipped_array)
+            action = np.concatenate((small_container_pos_original+[0,0,0.3], notflipped_array, np.array([1])))
+            state = 11
+        
             
         obs, reward, terminate = task.step(action)
 
