@@ -75,13 +75,14 @@ def generate_bounding_box(rgb_img, lower_bound, upper_bound):
         return bgr_modified_img
 
     except ValueError:
-        print('No image to return')
+        # print('No image to return')
+        1
 
 
 def get_objects(state, shape, obs, object_pos, box_pos):
     stepsize = 0.02
     if state == 0:
-        if object_pos[0] - obs.gripper_pose[0] > .003:
+        if abs(object_pos[0] - obs.gripper_pose[0]) > .008 or abs(object_pos[1] - obs.gripper_pose[1]) > .008:
             movementVector = np.asarray([(object_pos[0] - obs.gripper_pose[0]),
                                          (object_pos[1] - obs.gripper_pose[1]),
                                          .1 * (object_pos[2] - obs.gripper_pose[2])])
@@ -91,7 +92,7 @@ def get_objects(state, shape, obs, object_pos, box_pos):
                                          (object_pos[2] - obs.gripper_pose[2])])
 
 
-        if np.linalg.norm(movementVector) < 0.005:
+        if np.linalg.norm(movementVector) < 0.006:
             state = 1
             return [0, 0, 0, 0, 0, 0, 1, 0], state, shape
 
@@ -103,7 +104,7 @@ def get_objects(state, shape, obs, object_pos, box_pos):
         return np.concatenate((robotStep, delta_quat, gripper_pos)), state, shape
 
     elif state == 1:
-        if obs.gripper_pose[2] > .9:
+        if obs.gripper_pose[2] > .95:
             state = 2
         return [0, 0, stepsize, 0, 0, 0, 1, 0], state, shape
 
@@ -114,7 +115,7 @@ def get_objects(state, shape, obs, object_pos, box_pos):
         #                               (object_pos[2] - obs.gripper_pose[2])])) > .1:
         #     state = 0
 
-        if box_pos[0] - obs.gripper_pose[0] > .003:
+        if abs(box_pos[0] - obs.gripper_pose[0]) > .005 or abs(box_pos[1] - obs.gripper_pose[1]) > .005:
             movementVector = np.asarray([(box_pos[0] - obs.gripper_pose[0]),
                                          (box_pos[1] - obs.gripper_pose[1]),
                                          0])

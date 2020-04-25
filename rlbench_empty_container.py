@@ -98,9 +98,12 @@ if __name__ == "__main__":
     state = 0
     global shape
     shape = '0'
+    # initialize shape poses
+    obj_poses = obj_pose_sensor.get_poses()
+    shape_pos = obj_poses['Shape' + shape][:3]
+    most_recent_shape_pos = shape_pos
     while True:
         # Getting noisy object poses
-        obj_poses = obj_pose_sensor.get_poses()
         small_container_pos = obj_poses['small_container0'][:3]
 
         # Getting various fields from obs
@@ -119,14 +122,19 @@ if __name__ == "__main__":
         generate_bounding_box(rgb_img, lower_bound, upper_bound)
 
         # Perform action and step simulation
-        if int(shape) < 1:  # shape goes from 0, 2, 4
+        if int(shape) < 5:  # shape goes from 0, 2, 4
             if state == 0:
-                shape_pos = obj_poses['Shape' + shape][:3]
+                try:
+                    shape_pos = obj_poses['Shape' + shape][:3]
+                    most_recent_shape_pos = shape_pos
+                except KeyError:
+                    shape_pos = most_recent_shape_pos
             elif state == 2:
                 try:
                     shape_pos = obj_poses['Shape' + shape][:3]
+                    most_recent_shape_pos = shape_pos
                 except KeyError:
-                    shape_pos = [0, 0, 0]
+                    shape_pos = most_recent_shape_pos
             else:
                 shape_pos = [0, 0, 0]
 
