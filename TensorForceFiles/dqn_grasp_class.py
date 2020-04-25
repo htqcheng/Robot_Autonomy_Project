@@ -6,7 +6,7 @@ import numpy as np
 
 class DQN_grasp(TensorForceDQN):
 
-    def __init__(self, num_actions=3, num_states=14, load=None):
+    def __init__(self, num_actions=5, num_states=14, load=None):
         self.num_states = num_states # Gripper pose, object pose
         self.num_actions = num_actions # X, Y, Z, Yaw, Grasp
         super().__init__(num_states= self.num_states, num_actions=self.num_actions, load=load)

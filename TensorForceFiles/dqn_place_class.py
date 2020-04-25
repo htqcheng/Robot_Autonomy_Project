@@ -11,7 +11,7 @@ class DQN_place(DQN_grasp):
 
     def __init__(self, num_states=16, num_actions=5, load=None):
         self.num_states = 16 # Object pose, cabinet pose, Gripper Open, Target_num
-        self.num_actions = 4 # X, Y, Z, yaw, grasp
+        self.num_actions = 5 # X, Y, Z, yaw, grasp
         super().__init__(num_states=num_states, num_actions=num_actions, load=load)
         
         self.x_r = [-0.1, 0.05] # Cupboard coords: Point down
