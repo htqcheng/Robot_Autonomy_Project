@@ -9,7 +9,7 @@ MRSD Class of 2021
 
 import numpy as np
 import scipy as sp
-from quaternion import from_rotation_matrix, quaternion
+from quaternion import from_rotation_matrix, quaternion, as_euler_angles, from_euler_angles, as_float_array
 import cv2
 import imutils
 from imutils import perspective
@@ -81,23 +81,38 @@ def generate_bounding_box(rgb_img, lower_bound, upper_bound):
 
 def get_objects(state, shape, obs, object_pos, box_pos):
     stepsize = 0.02
+
+    joint_forces = obs.joint_forces
+
     if state == 0:
         if abs(object_pos[0] - obs.gripper_pose[0]) > .008 or abs(object_pos[1] - obs.gripper_pose[1]) > .008:
             movementVector = np.asarray([(object_pos[0] - obs.gripper_pose[0]),
                                          (object_pos[1] - obs.gripper_pose[1]),
                                          .1 * (object_pos[2] - obs.gripper_pose[2])])
+
+            print('No Object Grasped: ', np.linalg.norm(joint_forces))
+
         else:
             movementVector = np.asarray([(object_pos[0] - obs.gripper_pose[0]),
                                          (object_pos[1] - obs.gripper_pose[1]),
                                          (object_pos[2] - obs.gripper_pose[2])])
 
+        # # calculate rotation to enforce upright constraint
+        # desiredRP = [0, 0]  # this is the desired roll and pitch in euler angles
+        # notUpright = quaternion(obs.gripper_pose[3], obs.gripper_pose[4], obs.gripper_pose[5], obs.gripper_pose[6])
+        # uprightEuler = as_euler_angles(notUpright)
+        #
+        # gradUpright = np.array([-2 * (desiredRP[0] - uprightEuler[0]), -2 * (desiredRP[1] - uprightEuler[1]), 0])
+        #
+        # uprightQuatGrad = from_euler_angles(gradUpright)
+        # uprightQuatGrad = as_float_array(uprightQuatGrad) * stepsize
 
         if np.linalg.norm(movementVector) < 0.006:
             state = 1
             return [0, 0, 0, 0, 0, 0, 1, 0], state, shape
 
         unitMovementVector = movementVector / np.linalg.norm(movementVector)
-        robotStep = unitMovementVector * stepsize
+        robotStep = unitMovementVector
         delta_quat = np.asarray([0, 0, 0, 1])  # xyzw
         gripper_pos = np.asarray([1])
 
@@ -106,6 +121,7 @@ def get_objects(state, shape, obs, object_pos, box_pos):
     elif state == 1:
         if obs.gripper_pose[2] > .95:
             state = 2
+        print('Object is Grasped: ', np.linalg.norm(joint_forces))
         return [0, 0, stepsize, 0, 0, 0, 1, 0], state, shape
 
     elif state == 2:
@@ -119,6 +135,9 @@ def get_objects(state, shape, obs, object_pos, box_pos):
             movementVector = np.asarray([(box_pos[0] - obs.gripper_pose[0]),
                                          (box_pos[1] - obs.gripper_pose[1]),
                                          0])
+
+            print('Object is Grasped: ', np.linalg.norm(joint_forces))
+
         else:
             movementVector = np.asarray([(box_pos[0] - obs.gripper_pose[0]),
                                          (box_pos[1] - obs.gripper_pose[1]),

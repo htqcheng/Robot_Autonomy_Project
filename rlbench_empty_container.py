@@ -94,6 +94,8 @@ if __name__ == "__main__":
    
     descriptions, obs = task.reset()
     print(descriptions)
+
+
     global state
     state = 0
     global shape
@@ -112,6 +114,7 @@ if __name__ == "__main__":
         rgb_img = obs.wrist_rgb * 255
         depth_img = obs.wrist_depth
         mask_img = obs.wrist_mask
+
 
         # establish bounds for thresholding for red object
         # these channels are reversed from RGB to BGR
