@@ -85,7 +85,7 @@ def pick_up_box_variables(large_container_pos,obs,z,small_container_pos):
     flipped_euler = as_euler_angles(notflipped)
     
 
-    amount_2_flip = -2
+    amount_2_flip = -2.4
     if np.cos(z)<0:
         amount_2_flip = -amount_2_flip
     flipped_euler[2] += amount_2_flip
@@ -104,61 +104,83 @@ def pick_up_box_variables(large_container_pos,obs,z,small_container_pos):
 def pick_up_box(state,obs,gripper,small_container0_obj,z,small_container_pos,small_container_pos_original,gripper_pose,above_large_container,flipped_array,notflipped_array):
     # move to red box
     # state = 5
-    if state == 0:
-        action = np.concatenate((small_container_pos, gripper_pose[3:7], np.array([1])))
+    if state == -1:
+        print('state -1')
+        action = np.concatenate((small_container_pos_original+[0,0,.3], gripper_pose[3:7], np.array([1])))
+        state = 0
+        return state,action
+
+    elif state == 0:
+        print('state 0')
+        action = np.concatenate((small_container_pos_original+[0,0,0.01], gripper_pose[3:7], np.array([1])))
         state = 1
-    # grasp box
+        return state,action
+    # wait
     elif state == 1:
-        action = np.concatenate((obs.gripper_pose, np.array([0])))
+        print('state 1')
+        action = np.concatenate((obs.gripper_pose, np.array([1])))
         # action[-1] = 0
-        gripper.grasp(small_container0_obj)
+        
         state = 2
+        return state,action
     # moving sideways
     elif state == 2:
         pose = obs.gripper_pose
         pose[0] += np.sin(z)*0.02
         pose[1] += np.cos(z)*0.02
         action = np.concatenate((pose, np.array([0])))
+        
         state = 3
+        return state,action
     # moving up
     elif state == 3:
         pose = obs.gripper_pose
         pose[2] += 0.1
+        gripper.grasp(small_container0_obj)
         action = np.concatenate((pose, np.array([0])))
         state = 4
+        return state,action
     # above big container
     elif state == 4:
         action = np.concatenate((above_large_container, obs.gripper_pose[3:7], np.array([0])))
         state = 5
+        return state,action
     #flip box
     elif state ==5:
         # print(flipped_array)
         action = np.concatenate((above_large_container, flipped_array, np.array([0])))
         state = 6
+        return state,action
     elif state ==6:
         # print(flipped_array)
         action = np.concatenate((above_large_container, notflipped_array, np.array([0])))
         state = 7
+        return state,action
     elif state ==7:
         # print(flipped_array)
         action = np.concatenate((small_container_pos_original+[0,0,0.1], notflipped_array, np.array([0])))
         state = 8
+        return state,action
     elif state ==8:
         # print(flipped_array)
         action = np.concatenate((small_container_pos_original, notflipped_array, np.array([0])))
         state = 9
     elif state ==9:
+        return state,action
         # print(flipped_array)
         action = np.concatenate((small_container_pos_original, notflipped_array, np.array([1])))
         state = 10
+        return state,action
     elif state ==10:
         # print(flipped_array)
         action = np.concatenate((small_container_pos_original+[0,0,0.3], notflipped_array, np.array([1])))
         state = 11
+        return state,action
     else:
         action = np.concatenate((obs.gripper_pose, np.array([1])))
+        return state,action
 
-    return state,action
+    
 
 
 def get_objects(state, shape, obs, object_pos, box_pos):
@@ -166,14 +188,14 @@ def get_objects(state, shape, obs, object_pos, box_pos):
     #move above object
     if state == 0:
         
-        action = np.concatenate((object_pos[0:3]+[0,0,0.3], obs.gripper_pose[3:7], np.array([1])))
+        action = np.concatenate((object_pos[0:3]+[0,0,0.15], obs.gripper_pose[3:7], np.array([1])))
         state = 1
 
         return action, state, shape
     #move to object
     elif state == 1:
         
-        action = np.concatenate((object_pos[0:3]+[0,0,0.01], obs.gripper_pose[3:7], np.array([1])))
+        action = np.concatenate((object_pos[0:3]+[0,0,0.001], obs.gripper_pose[3:7], np.array([1])))
         
         state = 2
 
@@ -181,7 +203,7 @@ def get_objects(state, shape, obs, object_pos, box_pos):
     #move up
     elif state == 2:
         
-        action = np.concatenate((object_pos[0:3]+[0,0,0.3], obs.gripper_pose[3:7], np.array([0])))
+        action = np.concatenate((object_pos[0:3]+[0,0,0.15], obs.gripper_pose[3:7], np.array([0])))
         state = 3
 
         return action, state, shape
@@ -189,7 +211,7 @@ def get_objects(state, shape, obs, object_pos, box_pos):
     #move above box
     elif state == 3:
         
-        action = np.concatenate((box_pos[0:3]+[0,0,0.3], obs.gripper_pose[3:7], np.array([0])))
+        action = np.concatenate((box_pos[0:3]+[0,0,0.15], obs.gripper_pose[3:7], np.array([0])))
         state = 4
 
         return action, state, shape
@@ -197,23 +219,17 @@ def get_objects(state, shape, obs, object_pos, box_pos):
     #move close to box
     if state == 4:
         
-        action = np.concatenate((box_pos[0:3]+[0,0,0.1], obs.gripper_pose[3:7], np.array([0])))
+        action = np.concatenate((box_pos[0:3]+[0,0,0.07], obs.gripper_pose[3:7], np.array([0])))
         state = 5
 
         return action, state, shape
 
     #drop and move away
-    elif state == 5:
-        
-        action = np.concatenate((box_pos[0:3]+[0,0,0.3], obs.gripper_pose[3:7], np.array([1])))
-        state = 6
-
-        return action, state, shape
 
     else:
         shape = str(int(shape) + 2)
         state=0
-        action = np.concatenate((box_pos[0:3]+[0,0,0.3], obs.gripper_pose[3:7], np.array([1])))
+        action = np.concatenate((box_pos[0:3]+[0,0,0.15], obs.gripper_pose[3:7], np.array([1])))
         return action, state, shape
 
     

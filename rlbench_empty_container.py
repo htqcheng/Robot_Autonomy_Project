@@ -140,19 +140,19 @@ if __name__ == "__main__":
 
             action, state, shape = get_objects(state, shape, obs, shape_pos, small_container_pos)
             print("done")
-            if int(shape)>5:
-                mode=1
-        
-        if mode == 1:
-            call_once = 0
-            if call_once == 0:
-                pass
+            if int(shape)>0:
+                mode=0.5
+
+        if mode == 0.5:
             obj_poses = obj_pose_sensor.get_poses()
-            
-            current_joints = obs.joint_positions
+            small_container_pos = obj_poses['small_container0'][:3]
             gripper_pose = obs.gripper_pose
             small_container_pos[0] += 0.070*np.sin(z)
             small_container_pos[1] += 0.070*np.cos(z)
+            update=-1
+            mode = 1
+        
+        if mode == 1:
             update,action = pick_up_box(update,obs,gripper,small_container0_obj,z,small_container_pos,small_container_pos_original,gripper_pose,above_large_container,flipped_array,notflipped_array)
 
             
