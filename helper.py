@@ -162,41 +162,83 @@ def pick_up_box(state,obs,gripper,small_container0_obj,z,small_container_pos,sma
 
 
 def get_objects(state, shape, obs, object_pos, box_pos):
-    stepsize = 0.01
+    
+    #move above object
     if state == 0:
-        if abs(object_pos[0] - obs.gripper_pose[0]) > .008 or abs(object_pos[1] - obs.gripper_pose[1]) > .008:
-            action = np.concatenate((np.array([object_pos[0], object_pos[1], 0]), obs.gripper_pose[3:7], np.array([1])))
-
-        else:
-            action = np.concatenate((object_pos, obs.gripper_pose[3:7], np.array([1])))
-
-        if np.isclose(object_pos, obs.gripper_pose, .005):
-            state = 1
-            return [0, 0, 0, 0, 0, 0, 1, 0], state, shape
+        
+        action = np.concatenate((object_pos[0:3]+[0,0,0.3], obs.gripper_pose[3:7], np.array([1])))
+        state = 1
 
         return action, state, shape
-
+    #move to object
     elif state == 1:
-        if obs.gripper_pose[2] > .95:
-            state = 2
-        return [0, 0, stepsize, 0, 0, 0, 1, 0], state, shape
+        
+        action = np.concatenate((object_pos[0:3]+[0,0,0.01], obs.gripper_pose[3:7], np.array([1])))
+        
+        state = 2
 
+        return action, state, shape
+    #move up
     elif state == 2:
-        if abs(box_pos[0] - obs.gripper_pose[0]) > .005 or abs(box_pos[1] - obs.gripper_pose[1]) > .005:
-            action = np.concatenate((np.array([box_pos[0], box_pos[1], 0]), obs.gripper_pose[3:7], np.array([1])))
-
-        else:
-            action = np.concatenate((box_pos, obs.gripper_pose[3:7], np.array([1])))
-
-        if np.isclose(box_pos, obs.gripper_pose, .05):
-            state = 3
-            return [0, 0, 0, 0, 0, 0, 1, 1], state, shape
+        
+        action = np.concatenate((object_pos[0:3]+[0,0,0.3], obs.gripper_pose[3:7], np.array([0])))
+        state = 3
 
         return action, state, shape
 
+    #move above box
     elif state == 3:
-        if obs.gripper_pose[2] > 1:
-            state = 0
-            shape = str(int(shape) + 2)
-        return [0, 0, stepsize, 0, 0, 0, 1, 1], state, shape
+        
+        action = np.concatenate((box_pos[0:3]+[0,0,0.3], obs.gripper_pose[3:7], np.array([0])))
+        state = 4
+
+        return action, state, shape
+
+    #move close to box
+    if state == 4:
+        
+        action = np.concatenate((box_pos[0:3]+[0,0,0.1], obs.gripper_pose[3:7], np.array([0])))
+        state = 5
+
+        return action, state, shape
+
+    #drop and move away
+    elif state == 5:
+        
+        action = np.concatenate((box_pos[0:3]+[0,0,0.3], obs.gripper_pose[3:7], np.array([1])))
+        state = 6
+
+        return action, state, shape
+
+    else:
+        shape = str(int(shape) + 2)
+        state=0
+        action = np.concatenate((box_pos[0:3]+[0,0,0.3], obs.gripper_pose[3:7], np.array([1])))
+        return action, state, shape
+
+    
+
+    # elif state == 1:
+    #     if obs.gripper_pose[2] > .95:
+    #         state = 2
+    #     return [0, 0, stepsize, 0, 0, 0, 1, 0], state, shape
+
+    # elif state == 2:
+    #     if abs(box_pos[0] - obs.gripper_pose[0]) > .005 or abs(box_pos[1] - obs.gripper_pose[1]) > .005:
+    #         action = np.concatenate((np.array([box_pos[0], box_pos[1], 0]), obs.gripper_pose[3:7], np.array([1])))
+
+    #     else:
+    #         action = np.concatenate((box_pos, obs.gripper_pose[3:7], np.array([1])))
+
+    #     if np.isclose(box_pos, obs.gripper_pose, .05):
+    #         state = 3
+    #         return [0, 0, 0, 0, 0, 0, 1, 1], state, shape
+
+    #     return action, state, shape
+
+    # elif state == 3:
+    #     if obs.gripper_pose[2] > 1:
+    #         state = 0
+    #         shape = str(int(shape) + 2)
+    #     return [0, 0, stepsize, 0, 0, 0, 1, 1], state, shape
         

@@ -77,7 +77,7 @@ class NoisyObjectPoseSensor:
 if __name__ == "__main__":
 
     mode = 0
-    action_mode = ActionMode(ArmActionMode.ABS_EE_POSE) # See rlbench/action_modes.py for other action modes
+    action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN) # See rlbench/action_modes.py for other action modes
     env = Environment(action_mode, '', ObservationConfig(), False)
     task = env.get_task(EmptyContainer) # available tasks: EmptyContainer, PlayJenga, PutGroceriesInCupboard, SetTheTable
     agent = MoveAgent()
@@ -127,23 +127,21 @@ if __name__ == "__main__":
 
             # Perform action and step simulation
             if int(shape) < 5:  # shape goes from 0, 2, 4
-                if state == 0:
-                    try:
-                        shape_pos = obj_poses['Shape' + shape][:3]
-                        most_recent_shape_pos = shape_pos
-                    except KeyError:
-                        shape_pos = most_recent_shape_pos
-                elif state == 2:
-                    try:
-                        shape_pos = obj_poses['Shape' + shape][:3]
-                        most_recent_shape_pos = shape_pos
-                    except KeyError:
-                        shape_pos = most_recent_shape_pos
-                else:
-                    shape_pos = [0, 0, 0]
+                try:
+                    shape_pos = obj_poses['Shape' + shape][:3]
+                    most_recent_shape_pos = shape_pos
+                except KeyError:
+                    shape_pos = most_recent_shape_pos
+
+            print(int(shape))
+  
+
 
 
             action, state, shape = get_objects(state, shape, obs, shape_pos, small_container_pos)
+            print("done")
+            if int(shape)>5:
+                mode=1
         
         if mode == 1:
             call_once = 0
