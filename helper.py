@@ -165,25 +165,16 @@ def get_objects(state, shape, obs, object_pos, box_pos):
     stepsize = 0.01
     if state == 0:
         if abs(object_pos[0] - obs.gripper_pose[0]) > .008 or abs(object_pos[1] - obs.gripper_pose[1]) > .008:
-            movementVector = np.asarray([(object_pos[0] - obs.gripper_pose[0]),
-                                         (object_pos[1] - obs.gripper_pose[1]),
-                                         .1 * (object_pos[2] - obs.gripper_pose[2])])
+            action = np.concatenate((np.array([object_pos[0], object_pos[1], 0]), obs.gripper_pose[3:7], np.array([1])))
+
         else:
-            movementVector = np.asarray([(object_pos[0] - obs.gripper_pose[0]),
-                                         (object_pos[1] - obs.gripper_pose[1]),
-                                         (object_pos[2] - obs.gripper_pose[2])])
+            action = np.concatenate((object_pos, obs.gripper_pose[3:7], np.array([1])))
 
-
-        if np.linalg.norm(movementVector) < 0.006:
+        if np.isclose(object_pos, obs.gripper_pose, .005):
             state = 1
             return [0, 0, 0, 0, 0, 0, 1, 0], state, shape
 
-        unitMovementVector = movementVector / np.linalg.norm(movementVector)
-        robotStep = unitMovementVector * stepsize
-        delta_quat = np.asarray([0, 0, 0, 1])  # xyzw
-        gripper_pos = np.asarray([1])
-
-        return np.concatenate((robotStep, delta_quat, gripper_pos)), state, shape
+        return action, state, shape
 
     elif state == 1:
         if obs.gripper_pose[2] > .95:
@@ -191,32 +182,17 @@ def get_objects(state, shape, obs, object_pos, box_pos):
         return [0, 0, stepsize, 0, 0, 0, 1, 0], state, shape
 
     elif state == 2:
-        # This was code to try and determine whether the object was actually picked up or not. It causes an error right now
-        # if np.linalg.norm(np.asarray([(object_pos[0] - obs.gripper_pose[0]),
-        #                               (object_pos[1] - obs.gripper_pose[1]),
-        #                               (object_pos[2] - obs.gripper_pose[2])])) > .1:
-        #     state = 0
-
         if abs(box_pos[0] - obs.gripper_pose[0]) > .005 or abs(box_pos[1] - obs.gripper_pose[1]) > .005:
-            movementVector = np.asarray([(box_pos[0] - obs.gripper_pose[0]),
-                                         (box_pos[1] - obs.gripper_pose[1]),
-                                         0])
+            action = np.concatenate((np.array([box_pos[0], box_pos[1], 0]), obs.gripper_pose[3:7], np.array([1])))
+
         else:
-            movementVector = np.asarray([(box_pos[0] - obs.gripper_pose[0]),
-                                         (box_pos[1] - obs.gripper_pose[1]),
-                                         (box_pos[2] - obs.gripper_pose[2])])
+            action = np.concatenate((box_pos, obs.gripper_pose[3:7], np.array([1])))
 
-
-        unitMovementVector = movementVector / np.linalg.norm(movementVector)
-        robotStep = unitMovementVector * stepsize
-        delta_quat = np.asarray([0, 0, 0, 1])  # xyzw
-        gripper_pos = np.asarray([0])
-
-        if np.linalg.norm(movementVector) < 0.05:
+        if np.isclose(box_pos, obs.gripper_pose, .05):
             state = 3
             return [0, 0, 0, 0, 0, 0, 1, 1], state, shape
 
-        return np.concatenate((robotStep, delta_quat, gripper_pos)), state, shape
+        return action, state, shape
 
     elif state == 3:
         if obs.gripper_pose[2] > 1:
