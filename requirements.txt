@@ -2,4 +2,4 @@ numpy
 scipy
 numpy-quaternion
 tensorflow
-tensorforce[tf]
+tensorforce

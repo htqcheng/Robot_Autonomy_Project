@@ -1,9 +1,9 @@
 from tensorforce import Agent
-from TensorForceRL_parent import *
+from TensorForce_class import *
 import numpy as np
 
 
-class TensorForceDQN(TensorForce_Parent):
+class TensorForceDQN(TensorForceClass):
 
     def __init__(self,num_states=6, num_actions=4, load=None):
         super().__init__(num_states=num_states, num_actions=num_actions,load=load)
@@ -21,4 +21,3 @@ class TensorForceDQN(TensorForce_Parent):
             exploration=0.3,
             max_episode_timesteps= self.len_episode,
         )
-
