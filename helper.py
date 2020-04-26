@@ -13,6 +13,8 @@ import cv2
 import imutils
 from imutils import perspective
 from imutils import contours
+from collections import namedtuple
+
 
 def generate_bounding_box(rgb_img, lower_bound, upper_bound):
     '''
@@ -165,8 +167,8 @@ def pick_up_box(state,obs,gripper,small_container0_obj,z,small_container_pos,sma
         # print(flipped_array)
         action = np.concatenate((small_container_pos_original, notflipped_array, np.array([0])))
         state = 9
-    elif state ==9:
         return state,action
+    elif state ==9:
         # print(flipped_array)
         action = np.concatenate((small_container_pos_original, notflipped_array, np.array([1])))
         state = 10
@@ -257,4 +259,73 @@ def get_objects(state, shape, obs, object_pos, box_pos):
     #         state = 0
     #         shape = str(int(shape) + 2)
     #     return [0, 0, stepsize, 0, 0, 0, 1, 1], state, shape
-        
+
+
+def checkShapePosition(obj_poses, obs):
+    # have while loop to check for all of shape positions being accessible
+    shapePosAccessible = False
+    while not shapePosAccessible:
+        try:
+            shape0_pos = obj_poses['Shape0'][:3]
+            shape2_pos = obj_poses['Shape2'][:3]
+            shape4_pos = obj_poses['Shape4'][:3]
+            shapePosAccessible = True
+
+        except KeyError:
+            Warning('Can''t access all shapes yet.')
+
+    # once we can access the object shape positions, we need to
+    # we need to check if there are within the bounds of the large container
+    largeContainerPosition = obj_poses['large_container'][:3]
+    largeContainerOrientation = obj_poses['large_container'][3:]
+
+    largeContainerOrientation = quaternion(largeContainerOrientation[0],
+                                           largeContainerOrientation[1],
+                                           largeContainerOrientation[2],
+                                           largeContainerOrientation[3])
+    largeContainerOrientation = as_euler_angles(largeContainerOrientation)
+
+    transformValues = namedtuple('transformValues', ['x', 'y', 'yaw'])
+    transformValuesPosition = transformValues(x=0, y=0, yaw=largeContainerOrientation[1])
+
+    H_box = getTransform(transformValuesPosition)
+
+    # get dimensions of box !!!!!!!!!!!!! THESE ARE RANDOM VALUES RIGHT NOW!!!!!!!!
+    largeContainerLength = 1  # x dimension
+    largeContainerWidth = 1  # y dimension
+
+    boxCornerPoints = np.array([[largeContainerLength / 2, -largeContainerLength / 2, -largeContainerLength / 2, largeContainerLength / 2],
+                                [largeContainerWidth / 2, largeContainerWidth / 2, -largeContainerWidth / 2, -largeContainerWidth / 2],
+                                [1, 1, 1, 1]])
+
+    rotatedBoxCornerPoints = H_box @ boxCornerPoints
+
+    finalBoxCornerPoints = rotatedBoxCornerPoints + np.array([[largeContainerPosition[0]],
+                                                              [largeContainerPosition[1]],
+                                                              [1]])
+
+
+def getTransform(ArgStruct):
+    '''
+    getTransformation
+
+       Returns the 2D homogeneous transformation for the given pose.
+
+       Args: ArgStruct
+           ArgStruct.x: x axis position of frame 2's origin in frame 1 [m]
+           ArgStruct.y: y axis position of frame 2's origin in frame 1 [m]
+           ArgStruct.yaw: angle between frames [rad]
+
+       Returns: H
+           H: 2D homogeneous transformation matrix [m]
+
+       Raises:
+           none
+
+    '''
+    H = np.asarray([[np.cos(ArgStruct.yaw), -np.sin(ArgStruct.yaw), ArgStruct.x],
+                    [np.sin(ArgStruct.yaw), np.cos(ArgStruct.yaw), ArgStruct.y],
+                    [0, 0, 1]])
+
+    return H
+

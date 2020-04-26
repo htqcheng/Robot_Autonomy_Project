@@ -1,6 +1,8 @@
 import numpy as np
 import scipy as sp
 from quaternion import from_rotation_matrix, quaternion, as_euler_angles, from_euler_angles, as_float_array
+import time
+from collections import namedtuple
 
 from rlbench.environment import Environment
 from rlbench.action_modes import ArmActionMode, ActionMode
@@ -8,7 +10,7 @@ from rlbench.observation_config import ObservationConfig
 from rlbench.tasks import *
 
 from helper import pick_up_box, pick_up_box_variables, generate_bounding_box, get_objects
-import helper 
+from helper import *
 
 def skew(x):
     return np.array([[0, -x[2], x[1]],
@@ -115,7 +117,7 @@ if __name__ == "__main__":
 
     z = small_container_euler[0]
 
-    above_large_container,small_container_pos_original,notflipped_array,flipped_array = pick_up_box_variables(large_container_pos,obs,z,small_container_pos)
+    above_large_container,small_container_pos_original, notflipped_array,flipped_array = pick_up_box_variables(large_container_pos,obs,z,small_container_pos)
 
     while True:
         if mode==0:
@@ -134,14 +136,24 @@ if __name__ == "__main__":
                     shape_pos = most_recent_shape_pos
 
             print(int(shape))
-  
 
+            largeContainerPosition = obj_poses['large_container'][:3]
+            largeContainerOrientation = obj_poses['large_container'][3:]
+
+            largeContainerOrientation = quaternion(largeContainerOrientation[0],
+                                                   largeContainerOrientation[1],
+                                                   largeContainerOrientation[2],
+                                                   largeContainerOrientation[3])
+            largeContainerOrientation = as_euler_angles(largeContainerOrientation)
+
+            print('Large Container Position (x, y, z): ', largeContainerPosition)
+            print('Large Container Orientation (yaw): ', largeContainerOrientation[1] * 180 / np.pi)
 
 
             action, state, shape = get_objects(state, shape, obs, shape_pos, small_container_pos)
             print("done")
-            if int(shape)>4:
-                mode=0.5
+            if int(shape) > 4:
+                mode = 0.5
 
         if mode == 0.5:
             obj_poses = obj_pose_sensor.get_poses()
@@ -153,9 +165,18 @@ if __name__ == "__main__":
             mode = 1
         
         if mode == 1:
-            update,action = pick_up_box(update,obs,gripper,small_container0_obj,z,small_container_pos,small_container_pos_original,gripper_pose,above_large_container,flipped_array,notflipped_array)
+            update, action = pick_up_box(update,obs,gripper,
+                                         small_container0_obj,z,
+                                         small_container_pos,
+                                         small_container_pos_original,
+                                         gripper_pose,above_large_container,
+                                         flipped_array,notflipped_array)
+            if update == 11:
+                mode == 2
 
-            
+        if mode == 2:
+            checkShapePosition(obj_poses, obs)
+
         obs, reward, terminate = task.step(action)
 
     env.shutdown()
