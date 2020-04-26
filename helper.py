@@ -14,6 +14,8 @@ import imutils
 from imutils import perspective
 from imutils import contours
 from collections import namedtuple
+from shapely.geometry import Point, Polygon
+import time
 
 
 def generate_bounding_box(rgb_img, lower_bound, upper_bound):
@@ -273,6 +275,7 @@ def checkShapePosition(obj_poses, obs):
 
         except KeyError:
             Warning('Can''t access all shapes yet.')
+            time.sleep(1)
 
     # once we can access the object shape positions, we need to
     # we need to check if there are within the bounds of the large container
@@ -303,6 +306,21 @@ def checkShapePosition(obj_poses, obs):
     finalBoxCornerPoints = rotatedBoxCornerPoints + np.array([[largeContainerPosition[0]],
                                                               [largeContainerPosition[1]],
                                                               [1]])
+
+    finalBoxCornerCoords = [(finalBoxCornerPoints[0, 0], finalBoxCornerPoints[1, 0]),
+                            (finalBoxCornerPoints[0, 1], finalBoxCornerPoints[1, 1]),
+                            (finalBoxCornerPoints[0, 2], finalBoxCornerPoints[1, 2]),
+                            (finalBoxCornerPoints[0, 3], finalBoxCornerPoints[1, 3])]
+
+    boxPolygon = Polygon(finalBoxCornerCoords)
+
+    # check if points are in bounds
+    shapes = [shape0_pos, shape2_pos, shape4_pos]
+    shapeNum = ['0', '2', '4']
+    for i in range(3):
+        pointToCheck = Point(shapes[i][0], shapes[i][1])
+        isWithinBox = pointToCheck.within(boxPolygon)
+        print('Shape' + shapeNum[i], 'within bounds: ', isWithinBox)
 
 
 def getTransform(ArgStruct):

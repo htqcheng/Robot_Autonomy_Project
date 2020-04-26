@@ -171,8 +171,10 @@ if __name__ == "__main__":
                                          small_container_pos_original,
                                          gripper_pose,above_large_container,
                                          flipped_array,notflipped_array)
+
+            shape = '0'
             if update == 11:
-                mode == 2
+                mode = 2
 
         if mode == 2:
             checkShapePosition(obj_poses, obs)
