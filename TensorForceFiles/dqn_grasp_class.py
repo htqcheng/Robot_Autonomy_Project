@@ -11,7 +11,7 @@ class DQN_grasp(TensorForceDQN):
         self.num_actions = num_actions # X, Y, Z, Yaw, Grasp
         super().__init__(num_states= self.num_states, num_actions=self.num_actions, load=load)
         
-        self.x_r = [-.001, .001] 
+        self.x_r = [-.001, .001]
         self.y_r = [-.001, .001]
         self.z_r = [0.752, 1.0] ## Z Range: 0.751 - 1.75 (Maybe a little higher)
         self.yaw_r = [0, np.pi]

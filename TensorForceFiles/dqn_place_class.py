@@ -46,7 +46,6 @@ class DQN_place(DQN_grasp):
 
         in_states.extend(list([self.gripper_open*1.0, self.target_num]))
         return in_states
-
         
 
     def act(self, obs, obj_poses, key='crackers'):
