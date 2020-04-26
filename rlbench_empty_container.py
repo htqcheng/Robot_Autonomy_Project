@@ -140,7 +140,7 @@ if __name__ == "__main__":
 
             action, state, shape = get_objects(state, shape, obs, shape_pos, small_container_pos)
             print("done")
-            if int(shape)>0:
+            if int(shape)>4:
                 mode=0.5
 
         if mode == 0.5:
