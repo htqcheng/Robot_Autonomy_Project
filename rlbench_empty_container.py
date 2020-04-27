@@ -129,7 +129,7 @@ if __name__ == "__main__":
 
     while True:
 
-        print(mode)
+        print('mode is: ', mode)
         if mode==0:
 
             # Getting noisy object poses
@@ -145,10 +145,10 @@ if __name__ == "__main__":
                 except KeyError:
                     shape_pos = most_recent_shape_pos
 
-            print(int(shape))
+            print('Shape is: ', int(shape))
 
-            action, state, shape = get_objects(state, shape, obs, shape_pos, small_container_pos)
-            print(state)
+            action, state, shape = get_objects(rl_grasp_agent, task, obj_pose_sensor, state, shape, obs, shape_pos, small_container_pos)
+            print('State is: ', state)
             print("done")
             if int(shape) > 4:
                 mode = 0.5

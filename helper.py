@@ -181,7 +181,7 @@ def pick_up_box(state,obs,gripper,small_container0_obj,z,small_container_pos,sma
         return state,action
 
     
-def rl_get_objects(RLagent, task, state, shape, obs, obj_poses,box_pos):
+def rl_get_objects(RLagent, task, shape, obs, obj_poses, box_pos, success):
 
     target_name = 'Shape' + shape
 
@@ -192,6 +192,7 @@ def rl_get_objects(RLagent, task, state, shape, obs, obj_poses,box_pos):
 
     try:
         obs, reward, terminal = task.step(actions)
+        print("RL moved me")
 
         ### Check current distance
         target_state = list(obj_poses[target_name])
@@ -209,11 +210,12 @@ def rl_get_objects(RLagent, task, state, shape, obs, obj_poses,box_pos):
 
     if RLagent.has_object:
         success = True
-        break
+        print("Success!")
 
-    print('Iteration: %i, Reward: %.1f' %(i, reward))
+    # print('Iteration: %i, Reward: %.1f' %(i, reward))
+    return obs, success
 
-def get_objects(state, shape, obs, object_pos, box_pos):
+def get_objects(RLagent, task, obj_pose_sensor, state, shape, obs, object_pos, box_pos):
     
     #move above object
     if state == 0:
@@ -222,14 +224,27 @@ def get_objects(state, shape, obs, object_pos, box_pos):
         state = 1
 
         return action, state, shape
-    #move to object
+
+    # RL to take over moving to and grasp object
     elif state == 1:
+        success = False
+        while (not success):
+            obj_poses = obj_pose_sensor.get_poses()
+            obs, success = rl_get_objects(RLagent, task, shape, obs, obj_poses, box_pos, success)
         
-        action = np.concatenate((object_pos[0:3]+[0,0,0.001], obs.gripper_pose[3:7], np.array([1])))
-        
+        action = np.concatenate((obs.gripper_pose, np.array([0])))
         state = 2
 
         return action, state, shape
+
+    # #move to object
+    # elif state == 1:
+        
+    #     action = np.concatenate((object_pos[0:3]+[0,0,0.001], obs.gripper_pose[3:7], np.array([1])))
+        
+    #     state = 2
+
+    #     return action, state, shape
     #move up
     elif state == 2:
         
@@ -255,11 +270,7 @@ def get_objects(state, shape, obs, object_pos, box_pos):
         return action, state, shape
 
     #drop and move away
-    if state == 5:
-        shape = str(int(shape) + 2)
-        state=0
-        action = np.concatenate((obs.gripper_pose, np.array([1])))
-        return action, state, shape
+
     else:
         shape = str(int(shape) + 2)
         state=0
@@ -327,8 +338,8 @@ def checkShapePosition(obj_poses, obs):
     H_box = getTransform(transformValuesPosition)
 
     # get dimensions of box !!!!!!!!!!!!! THESE ARE RANDOM VALUES RIGHT NOW!!!!!!!!
-    largeContainerLength = .35  # x dimension
-    largeContainerWidth = .35  # y dimension
+    largeContainerLength = .34  # x dimension
+    largeContainerWidth = .34  # y dimension
 
     boxCornerPoints = np.array([[largeContainerLength / 2, -largeContainerLength / 2, -largeContainerLength / 2, largeContainerLength / 2],
                                 [largeContainerWidth / 2, largeContainerWidth / 2, -largeContainerWidth / 2, -largeContainerWidth / 2],
