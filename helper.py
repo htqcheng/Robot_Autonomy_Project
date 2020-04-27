@@ -298,8 +298,8 @@ def checkShapePosition(obj_poses, obs):
     H_box = getTransform(transformValuesPosition)
 
     # get dimensions of box !!!!!!!!!!!!! THESE ARE RANDOM VALUES RIGHT NOW!!!!!!!!
-    largeContainerLength = 1  # x dimension
-    largeContainerWidth = 1  # y dimension
+    largeContainerLength = .28  # x dimension
+    largeContainerWidth = .28  # y dimension
 
     boxCornerPoints = np.array([[largeContainerLength / 2, -largeContainerLength / 2, -largeContainerLength / 2, largeContainerLength / 2],
                                 [largeContainerWidth / 2, largeContainerWidth / 2, -largeContainerWidth / 2, -largeContainerWidth / 2],

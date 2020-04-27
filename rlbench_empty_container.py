@@ -166,7 +166,6 @@ if __name__ == "__main__":
                 mode = 2
 
         if mode == 2:
-            print('In mode 2')
             checkShapePosition(obj_poses, obs)
 
         obs, reward, terminate = task.step(action)
