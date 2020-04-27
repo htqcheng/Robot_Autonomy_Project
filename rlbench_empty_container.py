@@ -78,7 +78,7 @@ class NoisyObjectPoseSensor:
 
 if __name__ == "__main__":
 
-    mode = 2
+    mode = 0
     action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN) # See rlbench/action_modes.py for other action modes
     env = Environment(action_mode, '', ObservationConfig(), False)
     task = env.get_task(EmptyContainer) # available tasks: EmptyContainer, PlayJenga, PutGroceriesInCupboard, SetTheTable
@@ -169,6 +169,7 @@ if __name__ == "__main__":
                 mode = 2
 
         elif mode == 2:
+            obj_poses = obj_pose_sensor.get_poses()
             mode, shapesToBeReset = checkShapePosition(obj_poses, obs)
             action = np.concatenate((obs.gripper_pose, np.array([1])))
             print(mode)
