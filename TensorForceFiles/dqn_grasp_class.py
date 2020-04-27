@@ -24,6 +24,11 @@ class DQN_grasp(TensorForceDQN):
         self.target_num = 0
         self.target_name=''
 
+        self.input_high = 1.0
+        self.input_low  = 0.0        
+        self.len_episode = 10
+        self.explore = 0.5
+
 
     def act(self, obs, obj_poses, key='sugar'):
         gripper_pose = obs.gripper_pose

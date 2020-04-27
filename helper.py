@@ -181,9 +181,39 @@ def pick_up_box(state,obs,gripper,small_container0_obj,z,small_container_pos,sma
         return state,action
 
     
+def rl_get_objects(RLagent, task, state, shape, obs, obj_poses,box_pos):
 
+    target_name = 'Shape' + shape
 
-def get_objects(RLAgent, state, shape, obs, object_pos, box_pos):
+    # Update arm states
+    RLagent.has_object = len(task._robot.gripper._grasped_objects) > 0
+
+    actions = RLagent.act(obs,obj_poses, key=target_name)
+
+    try:
+        obs, reward, terminal = task.step(actions)
+
+        ### Check current distance
+        target_state = list(obj_poses[target_name])
+        RLagent.dist_after_action = max(0.05,np.linalg.norm(target_state[:3] - obs.gripper_pose[:3]))
+
+        ### Calculate reward
+        reward, terminal = RLagent.calculateReward()
+
+    except:
+        reward = -RLagent.dist_before_action*5
+        terminal = False
+
+    ## Observe results
+    RLagent.agent.observe(terminal=terminal, reward=reward)
+
+    if RLagent.has_object:
+        success = True
+        break
+
+    print('Iteration: %i, Reward: %.1f' %(i, reward))
+
+def get_objects(state, shape, obs, object_pos, box_pos):
     
     #move above object
     if state == 0:

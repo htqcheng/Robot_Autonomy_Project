@@ -12,12 +12,7 @@ class TensorForceDQN(TensorForceClass):
         super().__init__(num_states=num_states, num_actions=num_actions,load=load)
         self.num_states = num_states
         self.num_actions = num_actions
-        self.input_high = 1.0
-        self.input_low  = 0.0
         
-        
-        self.len_episode = 10
-        self.explore = 0.5
 
 
     def createRLagent(self, load):
