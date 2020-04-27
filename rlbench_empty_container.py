@@ -78,7 +78,7 @@ class NoisyObjectPoseSensor:
 
 if __name__ == "__main__":
 
-    mode = 2
+    mode = 0
     action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN) # See rlbench/action_modes.py for other action modes
     env = Environment(action_mode, '', ObservationConfig(), False)
     task = env.get_task(EmptyContainer) # available tasks: EmptyContainer, PlayJenga, PutGroceriesInCupboard, SetTheTable
@@ -138,6 +138,7 @@ if __name__ == "__main__":
             print(int(shape))
 
             action, state, shape = get_objects(state, shape, obs, shape_pos, small_container_pos)
+            print(state)
             print("done")
             if int(shape) > 4:
                 mode = 0.5

@@ -325,7 +325,7 @@ def checkShapePosition(obj_poses, obs):
         pointToCheck = Point(shapes[i][0], shapes[i][1])
         isWithinBox = pointToCheck.within(boxPolygon)
         print('Shape' + shapeNum[i], 'within bounds: ', isWithinBox)
-        if isWithinBox:#################################################need to change back: if not isWithinBox:
+        if not isWithinBox:#################################################need to change back: if not isWithinBox:
             shapesToBeReset.append(shapeNum[i])
 
     mode = 3
