@@ -206,6 +206,11 @@ if __name__ == "__main__":
                 
         elif mode==4:
             print("end")
+            state = 0
+            update = 0
+            count = 0
+            shape = '0'
+            mode=0
             action = np.concatenate((obs.gripper_pose, np.array([1])))
 
         obs, reward, terminate = task.step(action)

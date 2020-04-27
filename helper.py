@@ -110,13 +110,13 @@ def pick_up_box(state,obs,gripper,small_container0_obj,z,small_container_pos,sma
     # state = 5
     if state == -1:
         print('state -1')
-        action = np.concatenate((small_container_pos_original+[0,0,.3], gripper_pose[3:7], np.array([1])))
+        action = np.concatenate((small_container_pos_original+[np.sin(z)*0.02,np.cos(z)*0.02,0.3], gripper_pose[3:7], np.array([1])))
         state = 0
         return state,action
 
     elif state == 0:
         print('state 0')
-        action = np.concatenate((small_container_pos_original+[0,0,0.01], gripper_pose[3:7], np.array([1])))
+        action = np.concatenate((small_container_pos_original+[np.sin(z)*0.02,np.cos(z)*0.02,0.01], gripper_pose[3:7], np.array([1])))
         state = 1
         return state,action
     # wait
@@ -133,6 +133,7 @@ def pick_up_box(state,obs,gripper,small_container0_obj,z,small_container_pos,sma
         pose[0] += np.sin(z)*0.02
         pose[1] += np.cos(z)*0.02
         action = np.concatenate((pose, np.array([0])))
+        gripper.grasp(small_container0_obj)
         
         state = 3
         return state,action
