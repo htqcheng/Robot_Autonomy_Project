@@ -1,5 +1,5 @@
 numpy
 scipy
 numpy-quaternion
-tensorflow
 tensorforce
+tensorforce[tf]
