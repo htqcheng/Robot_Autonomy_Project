@@ -9,7 +9,7 @@ from rlbench.action_modes import ArmActionMode, ActionMode
 from rlbench.observation_config import ObservationConfig
 from rlbench.tasks import *
 
-from helper import pick_up_box, pick_up_box_variables, generate_bounding_box, get_objects
+from helper import pick_up_box, pick_up_box_variables, get_objects
 from helper import *
 
 def skew(x):
@@ -140,6 +140,7 @@ if __name__ == "__main__":
             print(int(shape))
 
             action, state, shape = get_objects(state, shape, obs, shape_pos, small_container_pos)
+            print(state)
             print("done")
             if int(shape) > 4:
                 mode = 0.5
