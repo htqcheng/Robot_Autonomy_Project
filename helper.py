@@ -75,11 +75,6 @@ import warnings
 
 #     return bgr_modified_img
 
-
-
-
-
-
 def pick_up_box_variables(large_container_pos,obs,z,small_container_pos):
     above_large_container = large_container_pos
     above_large_container[2] += 0.3
