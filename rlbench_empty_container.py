@@ -78,7 +78,7 @@ class NoisyObjectPoseSensor:
 
 if __name__ == "__main__":
 
-    mode = 2
+    mode = 0
     action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN) # See rlbench/action_modes.py for other action modes
     env = Environment(action_mode, '', ObservationConfig(), False)
     task = env.get_task(EmptyContainer) # available tasks: EmptyContainer, PlayJenga, PutGroceriesInCupboard, SetTheTable
@@ -120,6 +120,8 @@ if __name__ == "__main__":
     above_large_container,small_container_pos_original, notflipped_array,flipped_array = pick_up_box_variables(large_container_pos,obs,z,small_container_pos)
 
     while True:
+
+        print(mode)
         if mode==0:
 
             # Getting noisy object poses
@@ -142,7 +144,7 @@ if __name__ == "__main__":
             if int(shape) > 4:
                 mode = 0.5
 
-        if mode == 0.5:
+        elif mode == 0.5:
             obj_poses = obj_pose_sensor.get_poses()
             small_container_pos = obj_poses['small_container0'][:3]
             gripper_pose = obs.gripper_pose
@@ -151,7 +153,7 @@ if __name__ == "__main__":
             update=-1
             mode = 1
         
-        if mode == 1:
+        elif mode == 1:
             update, action = pick_up_box(update,obs,gripper,
                                          small_container0_obj,z,
                                          small_container_pos,
@@ -165,7 +167,7 @@ if __name__ == "__main__":
             if update == 11:
                 mode = 2
 
-        if mode == 2:
+        elif mode == 2:
             mode, shapesToBeReset = checkShapePosition(obj_poses, obs)
             action = np.concatenate((obs.gripper_pose, np.array([1])))
             print(mode)
@@ -174,7 +176,7 @@ if __name__ == "__main__":
             do_once_per_loop=0
             # mode = 3
 
-        if mode ==3:
+        elif mode ==3:
             obj_poses = obj_pose_sensor.get_poses()
             large_container_pos = obj_poses['large_container'][:3]
             
@@ -195,7 +197,7 @@ if __name__ == "__main__":
                     i+=1
                     shape = shapesToBeReset[i]
                 
-        if mode==4:
+        elif mode==4:
             print("end")
             action = np.concatenate((obs.gripper_pose, np.array([1])))
 

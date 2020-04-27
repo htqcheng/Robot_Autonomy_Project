@@ -230,7 +230,11 @@ def get_objects(state, shape, obs, object_pos, box_pos):
         return action, state, shape
 
     #drop and move away
-
+    if state == 5:
+        shape = str(int(shape) + 2)
+        state=0
+        action = np.concatenate((obs.gripper_pose, np.array([1])))
+        return action, state, shape
     else:
         shape = str(int(shape) + 2)
         state=0
@@ -326,7 +330,7 @@ def checkShapePosition(obj_poses, obs):
         pointToCheck = Point(shapes[i][0], shapes[i][1])
         isWithinBox = pointToCheck.within(boxPolygon)
         print('Shape' + shapeNum[i], 'within bounds: ', isWithinBox)
-        if isWithinBox:#################################################need to change back: if not isWithinBox:
+        if not isWithinBox:#################################################need to change back: if not isWithinBox:
             shapesToBeReset.append(shapeNum[i])
 
     mode = 3
