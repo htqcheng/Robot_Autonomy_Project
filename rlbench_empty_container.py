@@ -12,6 +12,12 @@ from rlbench.tasks import *
 from helper import pick_up_box, pick_up_box_variables, get_objects
 from helper import *
 
+import sys
+sys.path.append('../')
+sys.path.append(sys.path[0] + '/TensorForceFiles')
+from tensorforce import Agent
+from dqn_grasp_class import DQN_grasp
+
 def skew(x):
     return np.array([[0, -x[2], x[1]],
                     [x[2], 0, -x[0]],
@@ -87,6 +93,8 @@ if __name__ == "__main__":
     update = 0
     count = 0
     
+    # TensorForce Initialization
+    rl_grasp_agent = DQN_grasp()
 
     gripper = task._robot.gripper
     objs = obj_pose_sensor.get_objs()

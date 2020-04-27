@@ -188,7 +188,7 @@ def pick_up_box(state,obs,gripper,small_container0_obj,z,small_container_pos,sma
     
 
 
-def get_objects(state, shape, obs, object_pos, box_pos):
+def get_objects(RLAgent, state, shape, obs, object_pos, box_pos):
     
     #move above object
     if state == 0:

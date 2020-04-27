@@ -1,5 +1,7 @@
 from tensorforce import Agent
-from TensorForceRL_parent import *
+import sys
+sys.path.append('../')
+sys.path.append(sys.path[0] + '/TensorForceFiles')
 from DQN_class import *
 import numpy as np
 
@@ -22,7 +24,6 @@ class DQN_grasp(TensorForceDQN):
         self.target_num = 0
         self.target_name=''
 
-        
 
     def act(self, obs, obj_poses, key='sugar'):
         gripper_pose = obs.gripper_pose

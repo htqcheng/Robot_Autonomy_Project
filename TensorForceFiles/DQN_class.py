@@ -1,4 +1,7 @@
 from tensorforce import Agent
+import sys
+sys.path.append('../')
+sys.path.append(sys.path[0] + '/TensorForceFiles')
 from TensorForce_class import *
 import numpy as np
 
