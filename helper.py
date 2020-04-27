@@ -181,7 +181,7 @@ def pick_up_box(state,obs,gripper,small_container0_obj,z,small_container_pos,sma
         return state,action
 
     
-def rl_get_objects(RLagent, task, shape, obs, obj_poses, box_pos, success):
+def rl_get_objects(RLagent, task, shape, obs, obj_poses, box_pos, success, i):
 
     target_name = 'Shape' + shape
 
@@ -197,13 +197,17 @@ def rl_get_objects(RLagent, task, shape, obs, obj_poses, box_pos, success):
         ### Check current distance
         target_state = list(obj_poses[target_name])
         RLagent.dist_after_action = max(0.05,np.linalg.norm(target_state[:3] - obs.gripper_pose[:3]))
+        # RLagent.dist_after_action = np.linalg.norm(target_state[:3] - obs.gripper_pose[:3])
 
         ### Calculate reward
-        reward, terminal = RLagent.calculateReward()
+        reward, terminal = RLagent.calculateReward(i)
 
     except:
-        reward = -RLagent.dist_before_action*5
-        terminal = False
+        print("Couldn't move")
+        # reward = -RLagent.dist_before_action*5
+        ### Calculate reward
+        reward, terminal = RLagent.calculateReward(i)
+        # terminal = False
 
     ## Observe results
     RLagent.agent.observe(terminal=terminal, reward=reward)
@@ -212,8 +216,7 @@ def rl_get_objects(RLagent, task, shape, obs, obj_poses, box_pos, success):
         success = True
         print("Success!")
 
-    # print('Iteration: %i, Reward: %.1f' %(i, reward))
-    return obs, success
+    return obs, success, reward
 
 def get_objects(RLagent, task, obj_pose_sensor, state, shape, obs, object_pos, box_pos):
     
@@ -228,12 +231,22 @@ def get_objects(RLagent, task, obj_pose_sensor, state, shape, obs, object_pos, b
     # RL to take over moving to and grasp object
     elif state == 1:
         success = False
+        total_reward = 0
+        i = 0
         while (not success):
             obj_poses = obj_pose_sensor.get_poses()
-            obs, success = rl_get_objects(RLagent, task, shape, obs, obj_poses, box_pos, success)
+            obs, success, reward = rl_get_objects(RLagent, task, shape, obs, obj_poses, box_pos, success, i)
+            i += 1
+            total_reward += reward
+            print('Iteration: %i, Reward: %.1f' %(i, reward))
+            if i>=50:
+                "Failed to grasp, skipping the object."
+                success = True
         
         action = np.concatenate((obs.gripper_pose, np.array([0])))
-        state = 2
+        print('Success on Iteration: %i, Total Reward: %.1f' %(i, total_reward))
+        RLagent.agent.save(directory='dqn_grasp')
+        state = 3
 
         return action, state, shape
 
@@ -245,13 +258,14 @@ def get_objects(RLagent, task, obj_pose_sensor, state, shape, obs, object_pos, b
     #     state = 2
 
     #     return action, state, shape
-    #move up
-    elif state == 2:
+    
+    # #move up
+    # elif state == 2:
         
-        action = np.concatenate((object_pos[0:3]+[0,0,0.15], obs.gripper_pose[3:7], np.array([0])))
-        state = 3
+    #     action = np.concatenate((object_pos[0:3]+[0,0,0.15], obs.gripper_pose[3:7], np.array([0])))
+    #     state = 3
 
-        return action, state, shape
+    #     return action, state, shape
 
     #move above box
     elif state == 3:

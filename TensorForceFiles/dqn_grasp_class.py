@@ -15,12 +15,12 @@ class DQN_grasp(TensorForceDQN):
         
         self.x_r = [-.001, .001]
         self.y_r = [-.001, .001]
-        self.z_r = [0.752, 1.0] ## Z Range: 0.751 - 1.75 (Maybe a little higher)
+        self.z_r = [0.752, 0.7] ## Z Range: 0.751 - 1.75 (Maybe a little higher)
         self.yaw_r = [0, np.pi]
         self.gripper_open = True
         self.target_start_pose = [0,0,0]
         self.ee_pos = [0,0,0]
-        self.explore = 0.5
+        self.explore = 0.3
         self.target_num = 0
         self.target_name=''
 
@@ -50,7 +50,7 @@ class DQN_grasp(TensorForceDQN):
             actions = np.random.uniform(low=0.0, high=1, size=self.num_actions)
 
         a_in = self.scaleActions(actions)
-        self.gripper_open = a_in[-1]>0.5
+        self.gripper_open = a_in[-1]>0.3
 
         if self.num_actions == 5:
             a_in[:2] += target_state[:2]
@@ -83,9 +83,10 @@ class DQN_grasp(TensorForceDQN):
         return actions
     
 
-    def calculateReward(self):
+    def calculateReward(self, i):
         reward = 0
         terminal = False
+        reward -= i
 
         delta_dist = self.dist_before_action - self.dist_after_action
         temp = (self.dist_before_action - self.dist_after_action) / self.dist_before_action * 3
@@ -95,14 +96,24 @@ class DQN_grasp(TensorForceDQN):
         else:
             reward += min(temp,-0.1)
         
+        # print(self.has_object)
         if self.has_object: 
-            reward += 20
-            if self.ee_pos[-1] > self.z_r[1] - 0.05:
-                reward += 250
-                terminal = True
+            reward += 100
+            print("Reward after grasping: ", reward)
+            terminal = True
+            # if self.ee_pos[-1] > self.z_r[1] - 0.05:
+            #     reward += 250
+            #     terminal = True
+        print(self.dist_after_action)
+
+        if not self.gripper_open and self.dist_before_action>0.1:
+            reward -= 20
+        
+        if self.gripper_open and self.dist_before_action>0.1:
+            reward += 10
 
         if not self.gripper_open and not self.has_object:
-            reward -=1
+            reward -= 3
 
         return reward, terminal
 

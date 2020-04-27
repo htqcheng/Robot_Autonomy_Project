@@ -94,7 +94,8 @@ if __name__ == "__main__":
     count = 0
     
     # TensorForce Initialization
-    rl_grasp_agent = DQN_grasp()
+    rl_grasp_agent = DQN_grasp(load='dqn_grasp')
+    # rl_grasp_agent = DQN_grasp()
 
     gripper = task._robot.gripper
     objs = obj_pose_sensor.get_objs()
@@ -149,9 +150,10 @@ if __name__ == "__main__":
 
             action, state, shape = get_objects(rl_grasp_agent, task, obj_pose_sensor, state, shape, obs, shape_pos, small_container_pos)
             print('State is: ', state)
-            print("done")
+            # print("done")
             if int(shape) > 4:
-                mode = 0.5
+                print("Finished all pickup")
+                mode = 4
 
         elif mode == 0.5:
             obj_poses = obj_pose_sensor.get_poses()
@@ -219,6 +221,7 @@ if __name__ == "__main__":
             count = 0
             shape = '0'
             mode=0
+            descriptions, obs = task.reset()
             action = np.concatenate((obs.gripper_pose, np.array([1])))
 
         obs, reward, terminate = task.step(action)
