@@ -192,6 +192,13 @@ if __name__ == "__main__":
                 i+=1
                 shape = shapesToBeReset[i]
 
+            if ((i+1)>len(shapesToBeReset)) :
+                mode=4
+                
+        if mode==4:
+            print("end")
+            action = np.concatenate((obs.gripper_pose, np.array([1])))
+
         obs, reward, terminate = task.step(action)
 
     env.shutdown()
