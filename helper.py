@@ -16,6 +16,7 @@ from imutils import contours
 from collections import namedtuple
 from shapely.geometry import Point, Polygon
 import time
+import warnings
 
 
 def generate_bounding_box(rgb_img, lower_bound, upper_bound):
@@ -269,12 +270,15 @@ def checkShapePosition(obj_poses, obs):
     while not shapePosAccessible:
         try:
             shape0_pos = obj_poses['Shape0'][:3]
+            print('Shape0 position accessed')
             shape2_pos = obj_poses['Shape2'][:3]
+            print('Shape2 position accessed')
             shape4_pos = obj_poses['Shape4'][:3]
+            print('All shape positions are available')
             shapePosAccessible = True
 
         except KeyError:
-            Warning('Can''t access all shapes yet.')
+            warnings.warn('Can''t access all shapes yet.')
             time.sleep(1)
 
     # once we can access the object shape positions, we need to

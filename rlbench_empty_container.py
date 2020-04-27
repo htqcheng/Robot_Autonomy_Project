@@ -137,19 +137,6 @@ if __name__ == "__main__":
 
             print(int(shape))
 
-            largeContainerPosition = obj_poses['large_container'][:3]
-            largeContainerOrientation = obj_poses['large_container'][3:]
-
-            largeContainerOrientation = quaternion(largeContainerOrientation[0],
-                                                   largeContainerOrientation[1],
-                                                   largeContainerOrientation[2],
-                                                   largeContainerOrientation[3])
-            largeContainerOrientation = as_euler_angles(largeContainerOrientation)
-
-            print('Large Container Position (x, y, z): ', largeContainerPosition)
-            print('Large Container Orientation (yaw): ', largeContainerOrientation[1] * 180 / np.pi)
-
-
             action, state, shape = get_objects(state, shape, obs, shape_pos, small_container_pos)
             print("done")
             if int(shape) > 4:
@@ -172,11 +159,14 @@ if __name__ == "__main__":
                                          gripper_pose,above_large_container,
                                          flipped_array,notflipped_array)
 
+            print('state update (mode 1, pick-up box): ', update)
+
             shape = '0'
             if update == 11:
                 mode = 2
 
         if mode == 2:
+            print('In mode 2')
             checkShapePosition(obj_poses, obs)
 
         obs, reward, terminate = task.step(action)
