@@ -321,10 +321,17 @@ def checkShapePosition(obj_poses, obs):
     # check if points are in bounds
     shapes = [shape0_pos, shape2_pos, shape4_pos]
     shapeNum = ['0', '2', '4']
+    shapesToBeReset = []
     for i in range(3):
         pointToCheck = Point(shapes[i][0], shapes[i][1])
         isWithinBox = pointToCheck.within(boxPolygon)
         print('Shape' + shapeNum[i], 'within bounds: ', isWithinBox)
+        if not isWithinBox:
+            shapesToBeReset.append(shapeNum[i])
+
+    mode = 3
+
+    return mode, shapesToBeReset
 
 
 def getTransform(ArgStruct):
