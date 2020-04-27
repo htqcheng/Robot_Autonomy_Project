@@ -9,7 +9,7 @@ from rlbench.action_modes import ArmActionMode, ActionMode
 from rlbench.observation_config import ObservationConfig
 from rlbench.tasks import *
 
-from helper import pick_up_box, pick_up_box_variables, generate_bounding_box, get_objects
+from helper import pick_up_box, pick_up_box_variables, get_objects
 from helper import *
 
 def skew(x):
