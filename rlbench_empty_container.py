@@ -188,12 +188,12 @@ if __name__ == "__main__":
 
             print("shape",shape)
             action, state, do_once_per_loop = put_in_big_container(state, shape, obs, shape_pos, large_container_pos)
-            if (do_once_per_loop==0) and ((i+1)<len(shapesToBeReset)) :
-                i+=1
-                shape = shapesToBeReset[i]
-
-            if ((i+1)>len(shapesToBeReset)) :
-                mode=4
+            if (do_once_per_loop==0):
+                if ((i+1)>=len(shapesToBeReset)) :
+                    mode=4
+                else:   
+                    i+=1
+                    shape = shapesToBeReset[i]
                 
         if mode==4:
             print("end")

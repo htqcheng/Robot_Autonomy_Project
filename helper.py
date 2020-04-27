@@ -395,7 +395,7 @@ def put_in_big_container(state, shape, obs, object_pos, box_pos):
     #move close to box
     if state == 4:
         
-        action = np.concatenate((box_pos[0:3]+[0,0,0.07], obs.gripper_pose[3:7], np.array([0])))
+        action = np.concatenate((box_pos[0:3]+[0,0,0.1], obs.gripper_pose[3:7], np.array([0])))
         state = 5
 
         return action, state, 1
