@@ -78,7 +78,7 @@ class NoisyObjectPoseSensor:
 
 if __name__ == "__main__":
 
-    mode = 0
+    mode = 2
     action_mode = ActionMode(ArmActionMode.ABS_EE_POSE_PLAN) # See rlbench/action_modes.py for other action modes
     env = Environment(action_mode, '', ObservationConfig(), False)
     task = env.get_task(EmptyContainer) # available tasks: EmptyContainer, PlayJenga, PutGroceriesInCupboard, SetTheTable
@@ -167,6 +167,30 @@ if __name__ == "__main__":
 
         if mode == 2:
             mode, shapesToBeReset = checkShapePosition(obj_poses, obs)
+            action = np.concatenate((obs.gripper_pose, np.array([1])))
+            print(mode)
+            state = 0
+            i=0
+            do_once_per_loop=0
+            # mode = 3
+
+        if mode ==3:
+            obj_poses = obj_pose_sensor.get_poses()
+            large_container_pos = obj_poses['large_container'][:3]
+            
+            
+            
+            
+            if do_once_per_loop==0:
+                print(shapesToBeReset)
+                shape = shapesToBeReset[i]
+                shape_pos = obj_poses['Shape' + shape][:3]
+
+            print("shape",shape)
+            action, state, do_once_per_loop = put_in_big_container(state, shape, obs, shape_pos, large_container_pos)
+            if (do_once_per_loop==0) and ((i+1)<len(shapesToBeReset)) :
+                i+=1
+                shape = shapesToBeReset[i]
 
         obs, reward, terminate = task.step(action)
 

@@ -326,7 +326,7 @@ def checkShapePosition(obj_poses, obs):
         pointToCheck = Point(shapes[i][0], shapes[i][1])
         isWithinBox = pointToCheck.within(boxPolygon)
         print('Shape' + shapeNum[i], 'within bounds: ', isWithinBox)
-        if not isWithinBox:
+        if isWithinBox:#################################################need to change back: if not isWithinBox:
             shapesToBeReset.append(shapeNum[i])
 
     mode = 3
@@ -358,3 +358,56 @@ def getTransform(ArgStruct):
 
     return H
 
+def put_in_big_container(state, shape, obs, object_pos, box_pos):
+
+    print("state:",state)
+    #move above object
+    if state == 0:
+        
+        action = np.concatenate((object_pos[0:3]+[0,0,0.15], obs.gripper_pose[3:7], np.array([1])))
+        state = 1
+
+        return action, state, 1
+    #move to object
+    elif state == 1:
+        
+        action = np.concatenate((object_pos[0:3]+[0,0,0.001], obs.gripper_pose[3:7], np.array([1])))
+        
+        state = 2
+
+        return action, state, 1
+    #move up
+    elif state == 2:
+        
+        action = np.concatenate((object_pos[0:3]+[0,0,0.15], obs.gripper_pose[3:7], np.array([0])))
+        state = 3
+
+        return action, state, 1
+
+    #move above box
+    elif state == 3:
+        
+        action = np.concatenate((box_pos[0:3]+[0,0,0.15], obs.gripper_pose[3:7], np.array([0])))
+        state = 4
+
+        return action, state, 1
+
+    #move close to box
+    if state == 4:
+        
+        action = np.concatenate((box_pos[0:3]+[0,0,0.07], obs.gripper_pose[3:7], np.array([0])))
+        state = 5
+
+        return action, state, 1
+
+    #drop and move away
+
+    else:
+        shape = str(int(shape) + 2)
+        state=0
+        action = np.concatenate((box_pos[0:3]+[0,0,0.15], obs.gripper_pose[3:7], np.array([1])))
+        return action, state, 0
+
+    
+
+    
