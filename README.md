@@ -15,6 +15,7 @@ Please use Python 3.6
 1. Install [PyRep](https://github.com/stepjam/PyRep)
 2. Install [RLBench](https://github.com/stepjam/RLBench)
 3. `pip install -r requirements.txt`
+4. The requirements.txt include TensorForce and TensorFlow for Reinforcement Learning
 
 ## Example RLBench Usage
 Run `python rlbench_example.py` to launch the example script.
